@@ -1,0 +1,118 @@
+================================================================================
+                    CARD BATTLE UNIVERSE - ESTRUCTURA DE CARTAS
+================================================================================
+
+
+1. ESTRUCTURA DE UNA CARTA
+================================================================================
+
+  Campo             | Tipo              | Requerido | Default
+  ------------------|-------------------|-----------|-----------------------------
+  name              | String            | Sí        | -
+  type              | String (enum)     | No        | "Monster"
+  description       | String            | No        | -
+  attack            | Number            | No        | 0
+  defense           | Number            | No        | 0
+  ability           | String (enum)     | No        | "Ninguno"
+  rarity            | String (enum)     | No        | "Común"
+  imageUrl          | String            | No        | -
+  cardBackImageUrl  | String            | No        | -
+  createdAt         | Date              | No        | Date.now
+
+
+2. TIPOS DE CARTA
+================================================================================
+
+  Tipo     | Descripción
+  ---------|------------------------------------------------------------------
+  Monster  | Carta principal de combate. Se coloca en uno de los 3 slots del
+           | campo. Tiene ATK y DEF. Puede atacar monstruos enemigos o hacer
+           | daño directo al rival. Máximo 2 invocaciones por turno.
+           |
+  Spell    | Hechizo que se equipa sobre un monstruo aliado ya colocado en el
+           | campo. Al equiparlo, suma su ATK y DEF al monstruo objetivo.
+           | No ocupa slot propio.
+           |
+  Trap     | Trampa que se activa desde la mano y se coloca en la Zona de
+           | Trampas (máximo 3 trampas activas). Al activarse, todos los
+           | monstruos aliados en el campo reciben un bonus permanente de
+           | ATK y DEF igual a los valores de la trampa.
+
+
+3. HABILIDADES ESPECIALES
+================================================================================
+
+  Habilidad        | Efecto en combate
+  -----------------|---------------------------------------------------------------
+  Fuego            | Al atacar, inflige daño de área (splash) a los demás
+                   | monstruos enemigos en el campo. El daño splash es igual
+                   | al 40% del ATK del atacante (Math.floor(ATK * 0.4)).
+                   | Si el splash reduce la DEF de un monstruo adyacente a 0
+                   | o menos, ese monstruo es destruido.
+                   |
+  Hielo            | Al atacar un monstruo enemigo y NO destruirlo, lo congela
+                   | durante 2 turnos. Un monstruo congelado no puede atacar.
+                   | El contador de congelamiento se reduce en 1 al inicio de
+                   | cada turno del dueño del monstruo congelado.
+                   |
+  Veneno           | Efecto pasivo continuo. Al inicio del turno del oponente,
+                   | inflige daño a la DEFENSA de todos los monstruos enemigos
+                   | en el campo. El daño es igual al 20% del ATK de cada
+                   | monstruo con Veneno (Math.floor(ATK * 0.2)). Si la DEF
+                   | de un monstruo llega a 0, es destruido.
+                   |
+  Doble Ataque     | Permite al monstruo atacar 2 veces por turno en vez de 1.
+                   | Cada ataque es independiente y puede dirigirse a
+                   | objetivos diferentes.
+                   |
+  Daño Perforante  | Cuando el ATK del atacante supera la DEF del objetivo,
+                   | el exceso de daño (ATK - DEF del objetivo) se inflige
+                   | directamente a los Puntos de Vida (LP) del oponente.
+                   |
+  Robo de Vida     | Al atacar, el monstruo roba el 20% de su propio ATK
+                   | (Math.floor(ATK * 0.2)) y lo suma tanto a su ATK como
+                   | a su DEF permanentemente.
+                   |
+  Putrefacción     | Efecto pasivo continuo. Al inicio del turno del oponente,
+                   | inflige daño DIRECTO a los Puntos de Vida (LP) del rival.
+                   | El daño es igual al 20% del ATK de cada monstruo con
+                   | Putrefacción (Math.floor(ATK * 0.2)).
+                   |
+  Ninguno          | Sin habilidad especial. Ataque y defensa estándar.
+
+
+4. RAREZAS
+================================================================================
+
+  #  | Rareza      
+  ---|-------------
+  1  | Común       
+  2  | Rara        
+  3  | Épica       
+  4  | Legendaria  
+  5  | Mítica      
+  6  | Divina      
+  7  | Ancestral   
+  8  | Inmortal    
+  9  | Cósmica     
+
+
+5. MECÁNICAS ADICIONALES DE COMBATE
+================================================================================
+
+  - Cada jugador tiene 3 slots en el campo para monstruos.
+  - Los Puntos de Vida (LP) de cada jugador se calculan como la SUMA DE
+    LA DEFENSA de todas las cartas en su deck al inicio del duelo.
+    (Si el total es 0, se asigna un mínimo de 1000 LP).
+  - Al atacar un monstruo enemigo, el atacante pierde ATK igual a la DEF del
+    objetivo (retroceso). Si su ATK llega a 0, el atacante es destruido.
+  - Si no hay monstruos enemigos en el campo, se puede atacar directamente
+    a los LP del rival.
+  - El deck puede tener máximo 30 cartas y máximo 2 copias de la misma carta.
+  - Se roban 3 cartas al inicio y 3 cartas por turno.
+  - El jugador comienza con 10,000 LP.
+
+
+================================================================================
+                       Generado el 2026-03-24
+================================================================================

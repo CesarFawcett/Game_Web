@@ -1,0 +1,31 @@
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Entornos Virtuales
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Builds
+dist/
+build/
+out/
+
+# Capacitor
+android/
+ios/
+
+# SO y Editores
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

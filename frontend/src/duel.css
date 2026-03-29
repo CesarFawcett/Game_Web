@@ -991,11 +991,11 @@
   }
 
   .enemy-side {
-    transform: perspective(1200px) rotateX(50deg) scale(0.9);
+    transform: perspective(1200px) rotateX(40deg) scale(0.9);
   }
 
   .player-side {
-    transform: perspective(1200px) rotateX(50deg) scale(0.9);
+    transform: perspective(1200px) rotateX(40deg) scale(0.9);
   }
 
   .board-side {
@@ -1044,9 +1044,14 @@
   .trap-row {
     justify-content: center;
     width: 100%;
+    gap: 0.4rem;
   }
 
   .slot {
+    width: clamp(70px, 15vw, 100px);
+  }
+
+  .side-trap-slot {
     width: clamp(70px, 15vw, 100px);
   }
 
@@ -1058,34 +1063,105 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .duel-arena-layout {
-    padding-top: 2rem;
+    padding-top: 1rem;
+    justify-content: center;
+  }
+
+  .enemy-side {
+    transform: perspective(800px) rotateX(25deg) scale(0.95);
+    margin-bottom: 0;
+  }
+
+  .player-side {
+    transform: perspective(800px) rotateX(25deg) scale(0.95);
+  }
+
+  .enemy-side .field-section,
+  .player-side .field-section {
+    padding: 0.5rem;
   }
 
   .slot {
-    width: clamp(60px, 18vw, 85px);
+    width: clamp(55px, 20vw, 85px);
+    border-width: 1px;
+    aspect-ratio: 5/7;
   }
 
   .side-trap-slot {
-    width: clamp(50px, 12vw, 70px);
+    width: clamp(55px, 20vw, 85px);
+    border-width: 1px;
   }
 
-  .profile-section {
-    transform: scale(0.9);
+  /* Compact Enemy Profile */
+  .enemy-side .profile-section {
+    position: absolute;
+    top: -20px;
+    right: 0px;
+    width: auto;
+    flex-direction: row;
+    transform: scale(0.8) !important;
+    gap: 0.5rem;
+    padding: 0.3rem;
+    z-index: 100;
+  }
+
+  /* Compact Player Profile */
+  .player-side .profile-section {
+    position: absolute;
+    bottom: 30px;
+    left: 5px;
+    width: auto;
+    flex-direction: row;
+    transform: scale(0.8) !important;
+    gap: 0.5rem;
+    padding: 0.3rem;
+  }
+
+  .profile-top-row {
+    width: auto;
   }
 
   .battle-console-mockup {
-    transform: scale(0.9);
+    padding: 0.2rem 0.5rem;
+    gap: 0.5rem;
+  }
+
+  .pill-btn.purple {
+    padding: 0 1rem;
+    font-size: 0.7rem;
+    height: 35px;
+  }
+
+  .icon-btn.purple {
+    width: 35px;
+    height: 35px;
   }
 
   .player-hand-container {
-    bottom: 0;
-    padding: 0.2rem;
+    bottom: 10px;
+    left: 50%;
+    padding: 0;
+    width: 100%;
+  }
+
+  .hand-cards {
+    padding: 0 5px;
   }
 
   .hand-card {
-    width: 10px;
+    width: clamp(40px, 14vw, 75px);
+    margin: 0 -15px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.7);
+  }
+  
+  .hand-card.selected {
+    transform: translateY(-25px) rotate(0deg) scale(1.1) !important;
+  }
+
+  .card-stats .stat-item {
+    font-size: 0.5rem;
   }
 }
 

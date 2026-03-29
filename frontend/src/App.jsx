@@ -160,7 +160,7 @@ function App() {
       </AnimatePresence>
 
       <div className="app-container">
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
+        <header className="app-header-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
             <img src={logoG} alt="Designer Logo" style={{ width: '60px', height: 'auto', filter: 'drop-shadow(0 0 10px rgba(99, 102, 241, 0.4))' }} />
             <div>
@@ -168,10 +168,10 @@ function App() {
               <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>EL Universo Te Saluda • Bienvenido {user.username}</p>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
+          <div className="header-actions-mobile" style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
             <button className="glass-panel" onClick={() => setShowMissions(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 1rem', border: '1px solid var(--accent-gold)', borderRadius: '20px', cursor: 'pointer' }}>
               <Trophy size={18} className="text-gold" />
-              <span style={{ fontWeight: 600 }}>Misiones</span>
+              <span className="hide-on-mobile" style={{ fontWeight: 600 }}>Misiones</span>
               {missions.dailyWins > 0 && <span className="badge-dot" />}
             </button>
             <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem 1.2rem', border: '1px solid var(--accent-gold)', borderRadius: '20px', background: 'rgba(212, 175, 55, 0.05)' }}>
@@ -180,14 +180,14 @@ function App() {
             </div>
             {user.role === 'admin' && (
               <button className={`btn-primary ${currentPath === 'admin' ? 'active' : ''}`} onClick={() => navigate('/admin')}>
-                <Shield size={20} /> Panel Admin
+                <Shield size={20} /> <span className="hide-on-mobile">Panel Admin</span>
               </button>
             )}
             <button className={`btn-primary ${currentPath !== 'admin' ? 'active' : ''}`} onClick={() => navigate('/collection')}>
-              <Play size={20} /> Mi Colección
+              <Play size={20} /> <span className="hide-on-mobile">Mi Colección</span>
             </button>
             <button onClick={onLogout} className="btn-primary" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-              <UserIcon size={20} /> Salir
+              <UserIcon size={20} /> <span className="hide-on-mobile">Salir</span>
             </button>
           </div>
         </header>

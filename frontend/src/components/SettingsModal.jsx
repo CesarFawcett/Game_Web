@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { X, Volume2, VolumeX, Sliders, User as UserIcon, Layout, CreditCard } from 'lucide-react';
+import { 
+  X, Volume2, VolumeX, Sliders, User as UserIcon, 
+  Image as ImageIcon, Grid, CreditCard, Layout 
+} from 'lucide-react';
 import { getVolume, setVolume, toggleMute, getMuteStatus } from '../utils/sound';
 import axios from 'axios';
 import logoG from '../utils/img/IconoG.png';
@@ -54,7 +57,7 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
           equippedCardBack: res.data.equippedCardBack
         });
       }
-    } catch (err) { console.error("Error equipping board:", err); }
+    } catch (err) { console.error("Error equipping component:", err); }
     finally { setLoading(false); }
   };
 
@@ -88,70 +91,92 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
     setMuted(next);
   };
 
-  // Sections Renderers
-  const renderAvatars = () => (
+  // --- COLLECTION RENDERERS ---
+
+  const renderAvatars = () => {
+    // Collect standard shop avatars + avatars included in owned boards
+    const ownedBoardAvatars = boards
+      .filter(b => user.ownedBoards?.includes(b._id) && b.avatarUrl)
+      .map(b => ({ _id: `board-avatar-${b._id}`, imageUrl: b.avatarUrl, name: `Icono ${b.name}` }));
+
+    const availableAvatars = [
+      { _id: 'default', imageUrl: '/default.png', name: 'Predeterminado' },
+      ...avatars.filter(a => user.ownedAvatars?.includes(a._id)),
+      ...ownedBoardAvatars,
+      ...(user.unlockedEnemyAvatars || []).map((url, i) => ({ _id: `enemy-${i}`, imageUrl: url, name: 'Trofeo', isTrophy: true }))
+    ];
+
+    return (
+      <div className="collection-row scrollbar" style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '0.8rem' }}>
+        {availableAvatars.map(a => (
+          <div
+            key={a._id}
+            onClick={() => handleEquip(a.imageUrl)}
+            style={{
+              minWidth: '65px', height: '80px', cursor: 'pointer', borderRadius: '12px', position: 'relative',
+              border: user.equippedAvatar === a.imageUrl ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
+              boxShadow: user.equippedAvatar === a.imageUrl ? '0 0 15px rgba(212,175,55,0.4)' : 'none',
+              background: `url(${a.imageUrl?.startsWith('http') ? '' : baseUrl}${a.imageUrl}) center/cover`,
+              transition: 'all 0.2s ease'
+            }}
+            title={a.name}
+          >
+            {a.isTrophy && <span style={{ position: 'absolute', top: '-6px', right: '-6px', fontSize: '14px', filter: 'drop-shadow(0 0 4px gold)' }}>🏆</span>}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  const renderFieldImages = () => (
     <div className="collection-row scrollbar" style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '0.8rem' }}>
         <div
-            onClick={() => handleEquip('/default.png')}
+            onClick={() => handleEquipBoard({ fieldImageUrl: '' })}
             style={{
-                minWidth: '65px', height: '80px', cursor: 'pointer', borderRadius: '12px',
-                border: user.equippedAvatar === '/default.png' ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
-                boxShadow: user.equippedAvatar === '/default.png' ? '0 0 15px rgba(212,175,55,0.4)' : 'none',
-                background: `url(${baseUrl}/default.png) center/cover`, transition: 'all 0.2s ease'
+                minWidth: '120px', height: '70px', cursor: 'pointer', borderRadius: '12px',
+                border: !user.equippedFieldImage ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
+                background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-muted)', textAlign: 'center'
             }}
-            title="Predeterminado"
-        />
-        {avatars.filter(a => user.ownedAvatars?.includes(a._id)).map(a => (
+        >FONDO ESTÁNDAR</div>
+        {boards.filter(b => user.ownedBoards?.includes(b._id)).map(b => (
             <div
-                key={a._id}
-                onClick={() => handleEquip(a.imageUrl)}
+                key={`field-img-${b._id}`}
+                onClick={() => handleEquipBoard({ fieldImageUrl: b.fieldImageUrl || b.imageUrl })}
                 style={{
-                    minWidth: '65px', height: '80px', cursor: 'pointer', borderRadius: '12px',
-                    border: user.equippedAvatar === a.imageUrl ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
-                    boxShadow: user.equippedAvatar === a.imageUrl ? '0 0 15px rgba(212,175,55,0.4)' : 'none',
-                    background: `url(${a.imageUrl && typeof a.imageUrl === 'string' && a.imageUrl.startsWith('http') ? '' : baseUrl}${a.imageUrl}) center/cover`,
+                    minWidth: '120px', height: '70px', cursor: 'pointer', borderRadius: '12px',
+                    border: user.equippedFieldImage === (b.fieldImageUrl || b.imageUrl) ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
+                    boxShadow: user.equippedFieldImage === (b.fieldImageUrl || b.imageUrl) ? '0 0 15px rgba(212,175,55,0.3)' : 'none',
+                    background: `url(${(b.fieldImageUrl || b.imageUrl)?.startsWith('http') ? '' : baseUrl}${b.fieldImageUrl || b.imageUrl}) center/cover`,
                     transition: 'all 0.2s ease'
                 }}
+                title={b.name}
             />
-        ))}
-        {(user.unlockedEnemyAvatars || []).map((url, idx) => (
-            <div
-                key={`enemy-avatar-${idx}`}
-                onClick={() => handleEquip(url)}
-                style={{
-                    minWidth: '65px', height: '80px', cursor: 'pointer', borderRadius: '12px', position: 'relative',
-                    border: user.equippedAvatar === url ? '3px solid var(--accent-gold)' : '2px solid rgba(239, 68, 68, 0.4)',
-                    background: `url(${url && typeof url === 'string' && url.startsWith('http') ? '' : baseUrl}${url}) center/cover`
-                }}
-            >
-                <span style={{ position: 'absolute', top: '-6px', right: '-6px', fontSize: '14px', filter: 'drop-shadow(0 0 4px gold)' }}>🏆</span>
-            </div>
         ))}
     </div>
   );
 
-  const renderFields = () => (
+  const renderTextures = () => (
     <div className="collection-row scrollbar" style={{ display: 'flex', gap: '1rem', overflowX: 'auto', paddingBottom: '0.8rem' }}>
         <div
-            onClick={() => handleEquipBoard({ boardUrl: '', fieldImageUrl: '', textureUrl: '' })}
+            onClick={() => handleEquipBoard({ textureUrl: '' })}
             style={{
-                minWidth: '120px', height: '70px', cursor: 'pointer', borderRadius: '12px',
-                border: !user.equippedBoard ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
-                background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 900, color: 'var(--text-muted)', letterSpacing: '1px'
+                minWidth: '100px', height: '70px', cursor: 'pointer', borderRadius: '12px',
+                border: !user.equippedTexture ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
+                background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-muted)'
             }}
-        >ESTÁNDAR</div>
-        {boards.filter(b => user.ownedBoards?.includes(b._id)).map(b => (
+        >ÁREA LIMPIA</div>
+        {boards.filter(b => user.ownedBoards?.includes(b._id) && b.textureUrl).map(b => (
             <div
-                key={`field-${b._id}`}
-                onClick={() => handleEquipBoard({ boardUrl: b.imageUrl, fieldImageUrl: b.fieldImageUrl, textureUrl: b.textureUrl })}
+                key={`texture-${b._id}`}
+                onClick={() => handleEquipBoard({ textureUrl: b.textureUrl })}
                 style={{
-                    minWidth: '120px', height: '70px', cursor: 'pointer', borderRadius: '12px',
-                    border: user.equippedBoard === b.imageUrl ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
-                    boxShadow: user.equippedBoard === b.imageUrl ? '0 0 15px rgba(212,175,55,0.3)' : 'none',
-                    background: `url(${b.imageUrl && typeof b.imageUrl === 'string' && b.imageUrl.startsWith('http') ? '' : baseUrl}${b.imageUrl}) center/cover`,
+                    minWidth: '100px', height: '70px', cursor: 'pointer', borderRadius: '12px',
+                    border: user.equippedTexture === b.textureUrl ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
+                    boxShadow: user.equippedTexture === b.textureUrl ? '0 0 15px rgba(212,175,55,0.3)' : 'none',
+                    background: `url(${b.textureUrl?.startsWith('http') ? '' : baseUrl}${b.textureUrl}) center/cover`,
                     transition: 'all 0.2s ease'
                 }}
-                title={b.name}
+                title={`Textura ${b.name}`}
             />
         ))}
     </div>
@@ -177,7 +202,7 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
                     minWidth: '60px', height: '80px', cursor: 'pointer', borderRadius: '10px',
                     border: user.equippedCardBack === b.cardBackUrl ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
                     boxShadow: user.equippedCardBack === b.cardBackUrl ? '0 0 15px rgba(212,175,55,0.3)' : 'none',
-                    background: `url(${b.cardBackUrl && typeof b.cardBackUrl === 'string' && b.cardBackUrl.startsWith('http') ? '' : baseUrl}${b.cardBackUrl}) center/cover`,
+                    background: `url(${b.cardBackUrl?.startsWith('http') ? '' : baseUrl}${b.cardBackUrl}) center/cover`,
                     transition: 'all 0.2s ease'
                 }}
                 title={`Respaldo ${b.name}`}
@@ -195,56 +220,67 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
       <motion.div
         initial={{ scale: 0.8, y: 50 }} animate={{ scale: 1, y: 0 }}
         className="settings-card glass-panel"
-        style={{ width: '90%', maxWidth: '500px', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}
+        style={{ width: '95%', maxWidth: '550px', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}
       >
         <div className="settings-header" style={{ padding: '1.5rem', borderBottom: '1px solid rgba(255,255,255,0.05)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <Sliders size={22} className="text-gold" />
-            <h3 style={{ margin: 0, letterSpacing: '2px', fontWeight: 900, color: 'var(--accent-gold)' }}>PERSONALIZACIÓN</h3>
+            <h3 style={{ margin: 0, letterSpacing: '2px', fontWeight: 900, color: 'var(--accent-gold)' }}>CONFIGURACIÓN</h3>
           </div>
           <button className="close-btn" onClick={onClose} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}><X size={24} /></button>
         </div>
 
         <div className="settings-body scrollbar" style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
+          
           {/* Audio Section */}
           <div className="setting-item" style={{ marginBottom: '2.5rem', background: 'rgba(255,255,255,0.02)', padding: '1rem', borderRadius: '15px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
-                <label style={{ fontSize: '0.75rem', fontWeight: 800, opacity: 0.6, letterSpacing: '1px' }}>AUDIO PRINCIPAL</label>
-                <span style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 900 }}>{Math.round(vol * 100)}%</span>
+                <label style={{ fontSize: '0.75rem', fontWeight: 800, opacity: 0.6, letterSpacing: '1px' }}>VOLUMEN {Math.round(vol * 100)}%</label>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-              <button className="mute-btn-mini" onClick={handleMute} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', color: muted ? '#ef4444' : 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s' }}>
+              <button className="mute-btn-mini" onClick={handleMute} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', width: '40px', height: '40px', borderRadius: '50%', cursor: 'pointer', color: muted ? '#ef4444' : 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 {muted ? <VolumeX size={20} /> : <Volume2 size={20} />}
               </button>
               <input type="range" min="0" max="1" step="0.01" value={vol} onChange={handleVolChange} className="pixel-slider" style={{ flex: 1 }} />
             </div>
           </div>
 
+          <h4 style={{ fontSize: '0.65rem', letterSpacing: '3px', color: 'var(--accent-gold)', marginBottom: '1.5rem', opacity: 0.8, textAlign: 'center', borderBottom: '1px solid rgba(212,175,55,0.2)', paddingBottom: '0.5rem' }}>PERSONALIZACIÓN MODULAR</h4>
+
           {user && (
             <>
-              {/* Category: Avatar */}
+              {/* 1. ICONO (Avatar) */}
               <div className="cosmetic-section" style={{ marginBottom: '2.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.2rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
                       <UserIcon size={18} className="text-gold" />
-                      <label style={{ fontSize: '0.85rem', fontWeight: 900, letterSpacing: '1px' }}>PERSONAJE (AVATAR)</label>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 900, letterSpacing: '1px' }}>ICONO (AVATAR)</label>
                   </div>
                   {renderAvatars()}
               </div>
 
-              {/* Category: Fields */}
+              {/* 2. FONDO CAMPO */}
               <div className="cosmetic-section" style={{ marginBottom: '2.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.2rem' }}>
-                      <Layout size={18} className="text-gold" />
-                      <label style={{ fontSize: '0.85rem', fontWeight: 900, letterSpacing: '1px' }}>CAMPO DE BATALLA</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+                      <ImageIcon size={18} className="text-gold" />
+                      <label style={{ fontSize: '0.8rem', fontWeight: 900, letterSpacing: '1px' }}>FONDO CAMPO</label>
                   </div>
-                  {renderFields()}
+                  {renderFieldImages()}
               </div>
 
-              {/* Category: Card Backs */}
+              {/* 3. TEXTURA CAMPO */}
               <div className="cosmetic-section" style={{ marginBottom: '2.5rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1.2rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+                      <Grid size={18} className="text-gold" />
+                      <label style={{ fontSize: '0.8rem', fontWeight: 900, letterSpacing: '1px' }}>TEXTURA CAMPO</label>
+                  </div>
+                  {renderTextures()}
+              </div>
+
+              {/* 4. DORSO PERSONALIZADO */}
+              <div className="cosmetic-section" style={{ marginBottom: '2.5rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
                       <CreditCard size={18} className="text-gold" />
-                      <label style={{ fontSize: '0.85rem', fontWeight: 900, letterSpacing: '1px' }}>RESPALDO DE CARTAS</label>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 900, letterSpacing: '1px' }}>DORSO PERSONALIZADO</label>
                   </div>
                   {renderCardBacks()}
               </div>
@@ -252,25 +288,25 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
           )}
 
           {/* Account Management */}
-          <div style={{ marginTop: '2rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div style={{ marginTop: '3rem', paddingTop: '2rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             {!showConfirmDelete ? (
               <button
                 className="btn-danger-outline"
                 onClick={() => setShowConfirmDelete(true)}
-                style={{ width: '100%', padding: '1rem', fontSize: '0.8rem', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', background: 'rgba(239,68,68,0.02)', cursor: 'pointer', fontWeight: 800, letterSpacing: '1px' }}
+                style={{ width: '100%', padding: '1rem', fontSize: '0.75rem', color: '#ef4444', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', background: 'transparent', cursor: 'pointer', fontWeight: 800, letterSpacing: '1px' }}
               >
                 ELIMINAR MI CUENTA
               </button>
             ) : (
               <div style={{ textAlign: 'center', background: 'rgba(239,68,68,0.05)', padding: '1.5rem', borderRadius: '15px', border: '1px solid rgba(239,68,68,0.1)' }}>
-                <p style={{ color: '#ef4444', fontWeight: 900, fontSize: '0.85rem', marginBottom: '1.5rem', letterSpacing: '1px' }}>
+                <p style={{ color: '#ef4444', fontWeight: 900, fontSize: '0.8rem', marginBottom: '1.5rem' }}>
                   ¿ESTÁS COMPLETAMENTE SEGURO?
                 </p>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                  <button className="arcade-btn small-btn red-btn" onClick={handleDeleteAccount} disabled={isDeleting} style={{ flex: 1, padding: '10px' }}>
+                  <button className="arcade-btn small-btn red-btn" onClick={handleDeleteAccount} disabled={isDeleting} style={{ flex: 1 }}>
                     {isDeleting ? 'ELIMINANDO...' : 'SÍ, BORRAR'}
                   </button>
-                  <button className="arcade-btn small-btn black-btn" onClick={() => setShowConfirmDelete(false)} style={{ flex: 1, padding: '10px' }}>
+                  <button className="arcade-btn small-btn black-btn" onClick={() => setShowConfirmDelete(false)} style={{ flex: 1 }}>
                     CANCELAR
                   </button>
                 </div>
@@ -279,10 +315,9 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
           </div>
 
           {/* Versión info */}
-          <div style={{ marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', opacity: 0.4 }}>
-            <p style={{ fontSize: '0.55rem', letterSpacing: '3px', fontWeight: 900 }}>DESIGNED BY</p>
+          <div style={{ marginTop: '2.5rem', marginBottom: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', opacity: 0.3 }}>
             <img src={logoG} alt="Designer Logo" style={{ width: '35px', height: 'auto', filter: 'grayscale(1) brightness(1.5)' }} />
-            <p style={{ fontSize: '0.65rem', marginTop: '0.3rem', fontWeight: 800 }}>VERSIÓN 1.2.5</p>
+            <p style={{ fontSize: '0.6rem', fontWeight: 800 }}>VERSIÓN 1.3.0 • PREMIUM CUSTOM</p>
           </div>
         </div>
       </motion.div>

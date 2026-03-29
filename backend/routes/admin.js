@@ -133,19 +133,21 @@ router.post('/boards', upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'fieldImage', maxCount: 1 },
   { name: 'textureImage', maxCount: 1 },
-  { name: 'cardBackImage', maxCount: 1 }
+  { name: 'cardBackImage', maxCount: 1 },
+  { name: 'avatarImage', maxCount: 1 }
 ]), async (req, res) => {
   try {
-    const { name, price, enabled, imageString, fieldImageString, textureImageString, cardBackImageString } = req.body;
+    const { name, price, enabled, imageString, fieldImageString, textureImageString, cardBackImageString, avatarImageString } = req.body;
     const imageUrl = imageString ? imageString : (req.files && req.files['image'] ? `/uploads/${req.files['image'][0].filename}` : '');
     const fieldImageUrl = fieldImageString ? fieldImageString : (req.files && req.files['fieldImage'] ? `/uploads/${req.files['fieldImage'][0].filename}` : '');
     const textureUrl = textureImageString ? textureImageString : (req.files && req.files['textureImage'] ? `/uploads/${req.files['textureImage'][0].filename}` : '');
     const cardBackUrl = cardBackImageString ? cardBackImageString : (req.files && req.files['cardBackImage'] ? `/uploads/${req.files['cardBackImage'][0].filename}` : '');
+    const avatarUrl = avatarImageString ? avatarImageString : (req.files && req.files['avatarImage'] ? `/uploads/${req.files['avatarImage'][0].filename}` : '');
     
     const newBoard = new Board({ 
       name, price, 
       enabled: enabled === 'true' || enabled === true, 
-      imageUrl, fieldImageUrl, textureUrl, cardBackUrl 
+      imageUrl, fieldImageUrl, textureUrl, cardBackUrl, avatarUrl 
     });
     await newBoard.save();
     res.status(201).json(newBoard);
@@ -160,7 +162,8 @@ router.put('/boards/:id', upload.fields([
   { name: 'image', maxCount: 1 },
   { name: 'fieldImage', maxCount: 1 },
   { name: 'textureImage', maxCount: 1 },
-  { name: 'cardBackImage', maxCount: 1 }
+  { name: 'cardBackImage', maxCount: 1 },
+  { name: 'avatarImage', maxCount: 1 }
 ]), async (req, res) => {
   try {
     const { name, price, enabled, imageString, fieldImageString, textureImageString, cardBackImageString } = req.body;
@@ -180,6 +183,9 @@ router.put('/boards/:id', upload.fields([
     
     if (cardBackImageString) updateData.cardBackUrl = cardBackImageString;
     else if (req.files && req.files['cardBackImage']) updateData.cardBackUrl = `/uploads/${req.files['cardBackImage'][0].filename}`;
+
+    if (avatarImageString) updateData.avatarUrl = avatarImageString;
+    else if (req.files && req.files['avatarImage']) updateData.avatarUrl = `/uploads/${req.files['avatarImage'][0].filename}`;
     
     const board = await Board.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(board);

@@ -6,6 +6,7 @@ const BoardSchema = new mongoose.Schema({
   fieldImageUrl: { type: String },
   textureUrl: { type: String },
   cardBackUrl: { type: String },
+  avatarUrl: { type: String },
   price: { type: Number, default: 0 },
   enabled: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now },

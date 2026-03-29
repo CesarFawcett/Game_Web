@@ -1,0 +1,24 @@
+/* Estilos para Habilidades de Cartas */
+
+@keyframes freeze-pulse {
+  0% { box-shadow: 0 0 5px #0ea5e9; }
+  50% { box-shadow: 0 0 15px #0ea5e9; }
+  100% { box-shadow: 0 0 5px #0ea5e9; }
+}
+
+.frozen-card {
+  filter: brightness(0.8) saturate(1.2) hue-rotate(180deg) !important;
+  position: relative;
+  border: 2px solid #0ea5e9 !important;
+  animation: freeze-pulse 2s infinite !important;
+}
+
+.frozen-card::after {
+  content: '❄️';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  font-size: 1.5rem;
+  z-index: 100;
+  text-shadow: 0 0 10px white;
+}

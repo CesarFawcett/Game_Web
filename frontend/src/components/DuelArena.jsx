@@ -64,9 +64,10 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
         store.setSetter('turn', firstTurn); 
         
         const isMeFirst = myAssignedRole === firstTurn;
-        const turnOwnerName = isMeFirst ? 'Tú' : enemy.name;
-        store.addLog(`¡El juego comienza! Turno de ${turnOwnerName}`);
-        store.showSplash(`TURNO DE ${turnOwnerName.toUpperCase()}`);
+        const turnOwnerName = isMeFirst ? 'Tú' : (enemy.username || enemy.name);
+        const orderMsg = isMeFirst ? '¡VAS PRIMERO!' : 'VAS SEGUNDO';
+        store.addLog(`¡Duelo Iniciado! ${orderMsg}`);
+        store.showSplash(orderMsg);
         
         store.startTurn(firstTurn);
       });
@@ -174,7 +175,7 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
             {[2, 1, 0].map(i => <FieldSlot key={`enemy-${i}`} side="enemy" index={i} baseUrl={baseUrl} />)}
           </div>
         </div>
-        {store.selectedAttackerIdx !== null && store.turn === store.myRole && (
+        {store.selectedAttackerIdx !== null && store.turn === store.myRole && ePOV.field.some(slot => !slot) && (
           <div className="direct-attack-zone-new" onClick={() => store.executeAttack(store.selectedAttackerIdx, -1)}>ATAQUE DIRECTO</div>
         )}
       </div>

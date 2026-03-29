@@ -366,6 +366,13 @@ const useMatchStore = create((set, get) => ({
     if (!isRemote) get().emitAction('EXECUTE_ATTACK', { attackerIdx, targetIdx });
 
     if (!target) {
+        // Direct Attack Safety Check: Only if defender field has at least one empty slot
+        const dField = s[dPrefix + 'Field'];
+        if (dField.every(slot => slot)) {
+            get().addLog("¡No puedes atacar directo si el campo está lleno!");
+            set({ isProcessing: false, attackingIdx: null, selectedAttackerIdx: null, defendingIdx: null });
+            return;
+        }
         set(p => ({ [dPrefix + 'HP']: Math.max(0, p[dPrefix + 'HP'] - attacker.attack) }));
     } else {
         const damage = attacker.attack;
@@ -387,12 +394,34 @@ const useMatchStore = create((set, get) => ({
             const nextA = { ...nextF[attackerIdx] };
             nextA.attack = Math.max(0, nextA.attack - target.defense);
             nextA.attacksThisTurn += 1;
+
+            // Hielo Ability Check
+            if (attacker.ability === 'Hielo' && !nextF[attackerIdx]?.frozen) {
+                // Done later in the target update for consistency, but we can do it here for the attacker
+            }
+            if (target.ability === 'Hielo') {
+                nextA.frozen = 3; // 2 turn skip
+                get().addLog(`¡${attacker.name} ha sido congelado por el Hielo de ${target.name}!`);
+            }
+
             if (nextA.attack <= 0 && target.defense > 0) {
                  set({ [aPrefix + 'Graveyard']: [...get()[aPrefix + 'Graveyard'], nextA] });
                  nextF[attackerIdx] = null;
             } else { nextF[attackerIdx] = nextA; }
             return { [aPrefix + 'Field']: nextF };
         });
+
+        // Apply Ice to Target
+        if (attacker.ability === 'Hielo') {
+            set(prev => {
+                const nextF = [...prev[dPrefix + 'Field']];
+                if (nextF[targetIdx]) {
+                    nextF[targetIdx] = { ...nextF[targetIdx], frozen: 3 };
+                    get().addLog(`¡${target.name} ha sido congelado por el Hielo de ${attacker.name}!`);
+                }
+                return { [dPrefix + 'Field']: nextF };
+            });
+        }
     }
 
     await new Promise(r => setTimeout(r, 300));
@@ -464,17 +493,20 @@ const useMatchStore = create((set, get) => ({
         }
     }
 
-    // 2. Invocar Monstruo (máx 1 por turno simplificado para IA)
-    const emptySlot = newField.findIndex(slot => !slot);
-    if (emptySlot !== -1) {
+    // 2. Invocar Monstruos (hasta 3 si hay espacio)
+    for (let i = 0; i < 3; i++) {
+        const emptySlot = newField.findIndex(slot => !slot);
+        if (emptySlot === -1) break;
+
         const monsterIdx = newHand.findIndex(c => c && (c.type === 'Monster' || !c.type));
-        if (monsterIdx !== -1) {
-            placed++;
-            playSound('place');
-            const monster = newHand.splice(monsterIdx, 1)[0];
-            newField[emptySlot] = { ...monster, attacksThisTurn: 0, frozen: 0 };
-            get().addLog(`Enemigo invoca a ${monster.name}`);
-        }
+        if (monsterIdx === -1) break;
+
+        placed++;
+        playSound('place');
+        const monster = newHand.splice(monsterIdx, 1)[0];
+        newField[emptySlot] = { ...monster, attacksThisTurn: 0, frozen: 0 };
+        get().addLog(`Enemigo invoca a ${monster.name}`);
+        // Pequeño retardo entre invocaciones si quieres, o todo de golpe
     }
 
     set({ p2Hand: newHand, p2Field: newField, p2Traps: newTraps });
@@ -483,15 +515,39 @@ const useMatchStore = create((set, get) => ({
     // 3. Batalla
     set({ phase: 'ENEMIGO (Battle)' });
     for (let i = 0; i < newField.length; i++) {
-        const card = get().p2Field[i];
-        if (card && card.frozen <= 0) {
-            // Decidir objetivo: preferir monstruos, luego héroe
+        let card = get().p2Field[i];
+        if (!card || card.frozen > 0) continue;
+
+        const maxAttacks = card.ability === 'Doble Ataque' ? 2 : 1;
+        
+        for (let atkCount = 0; atkCount < maxAttacks; atkCount++) {
+            // Re-fetch card status in case it was destroyed or modified in the first attack
+            card = get().p2Field[i];
+            if (!card) break;
+
             const playerField = get().p1Field;
-            const targets = playerField.map((c, idx) => c ? idx : null).filter(idx => idx !== null);
+            const monstersOnField = playerField.filter(Boolean).length;
+            const hasSpaces = playerField.some(slot => !slot);
+            const monsterTargets = playerField.map((c, idx) => c ? idx : null).filter(idx => idx !== null);
             
-            let targetIdx = -1; // Default hero
-            if (targets.length > 0 && Math.random() > 0.3) {
-                targetIdx = targets[Math.floor(Math.random() * targets.length)];
+            let targetIdx = -1; // Default hero (Direct Attack)
+            
+            // Regla: Si no hay espacios vacíos (3 monstruos), DEBE atacar monstruo
+            if (!hasSpaces) {
+                if (monsterTargets.length > 0) {
+                    targetIdx = monsterTargets[Math.floor(Math.random() * monsterTargets.length)];
+                } else {
+                    // Caso improbable donde el campo está lleno pero no hay objetivos (¿todos ocultos?)
+                    // Por ahora, si está lleno, forzamos a uno.
+                    targetIdx = 0; 
+                }
+            } else {
+                // Hay huecos: Puede elegir atacar directo o monstruo
+                if (monsterTargets.length > 0 && Math.random() > 0.6) {
+                    targetIdx = monsterTargets[Math.floor(Math.random() * monsterTargets.length)];
+                } else {
+                    targetIdx = -1;
+                }
             }
 
             await get().executeAttack(i, targetIdx, true);

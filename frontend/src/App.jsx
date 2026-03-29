@@ -82,7 +82,7 @@ function App() {
       'album': "En el Álbum puedes ver todas las cartas que posees y las que aún no has descubierto; tendrás que adivinarlas.",
       'story': "¡Vaya! Aquí tienes muchos enemigos para empezar, ¡a por ellos!",
       'collection': "Aquí tienes todas tus cartas. Recuerda seleccionar un mínimo de 10 cartas para tu Deck para poder entrar en combate.",
-      'duels': "¡Ojo, Duelista! Este apartado de Duelos en Tiempo Real estará disponible en futuras actualizaciones del reino. ¡No te lo pierdas!"
+      'duels': "¡Bienvenido a la Arena de Duelos! Aquí podrás probar tus habilidades contra otros duelistas reales. ¡Demuestra quién es el verdadero Rey del Tablero!"
     };
 
     // Special Trigger for Shop Onboarding after registration
@@ -209,7 +209,7 @@ function App() {
             <TabItem id="deck" label="Mi Deck" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Shield size={18} />} badge={deck.length} />
             <TabItem 
               id="duels" 
-              label="Próximamente" 
+              label="Arena PvP" 
               active={currentPath} 
               setActive={(path) => navigate(`/${path}`)} 
               icon={<Play size={18} />} 
@@ -270,7 +270,7 @@ function App() {
                   }} />
                 </motion.div>
               } />
-              <Route path="/duels" element={<ComingSoon tab="duels" />} />
+              <Route path="/duels" element={<DuelsView />} />
               <Route path="/" element={<Navigate to="/collection" />} />
             </Routes>
           </AnimatePresence>

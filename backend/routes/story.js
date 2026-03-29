@@ -38,11 +38,11 @@ const uploadFields = upload.fields([
 // Create new Enemy (Admin only)
 router.post('/enemies', uploadFields, async (req, res) => {
   try {
-    const { name, hp, enabled } = req.body;
-    const imageUrl = req.files['image'] ? `/uploads/${req.files['image'][0].filename}` : '/uploads/default_enemy.png';
-    const cardBackUrl = req.files['cardBack'] ? `/uploads/${req.files['cardBack'][0].filename}` : '';
-    const fieldImageUrl = req.files['field'] ? `/uploads/${req.files['field'][0].filename}` : '';
-    const fieldTextureUrl = req.files['fieldTexture'] ? `/uploads/${req.files['fieldTexture'][0].filename}` : '';
+    const { name, hp, enabled, imageString, cardBackString, fieldString, fieldTextureString } = req.body;
+    const imageUrl = imageString ? imageString : (req.files['image'] ? `/uploads/${req.files['image'][0].filename}` : '/uploads/default_enemy.png');
+    const cardBackUrl = cardBackString ? cardBackString : (req.files['cardBack'] ? `/uploads/${req.files['cardBack'][0].filename}` : '');
+    const fieldImageUrl = fieldString ? fieldString : (req.files['field'] ? `/uploads/${req.files['field'][0].filename}` : '');
+    const fieldTextureUrl = fieldTextureString ? fieldTextureString : (req.files['fieldTexture'] ? `/uploads/${req.files['fieldTexture'][0].filename}` : '');
     
     // Get next rankIndex
     const lastEnemy = await Enemy.findOne().sort({ rankIndex: -1 });
@@ -59,7 +59,7 @@ router.post('/enemies', uploadFields, async (req, res) => {
 // Update enemy (Admin only)
 router.put('/enemies/:id', uploadFields, async (req, res) => {
   try {
-    const { name, deck, hp, enabled } = req.body;
+    const { name, deck, hp, enabled, imageString, cardBackString, fieldString, fieldTextureString } = req.body;
     const enemy = await Enemy.findById(req.params.id);
     if (!enemy) return res.status(404).json({ message: 'Enemigo no encontrado' });
 
@@ -70,10 +70,17 @@ router.put('/enemies/:id', uploadFields, async (req, res) => {
     if (hp !== undefined) enemy.hp = hp;
     if (enabled !== undefined) enemy.enabled = typeof enabled === 'string' ? enabled === 'true' : enabled;
     
-    if (req.files['image']) enemy.imageUrl = `/uploads/${req.files['image'][0].filename}`;
-    if (req.files['cardBack']) enemy.cardBackUrl = `/uploads/${req.files['cardBack'][0].filename}`;
-    if (req.files['field']) enemy.fieldImageUrl = `/uploads/${req.files['field'][0].filename}`;
-    if (req.files['fieldTexture']) enemy.fieldTextureUrl = `/uploads/${req.files['fieldTexture'][0].filename}`;
+    if (imageString) enemy.imageUrl = imageString;
+    else if (req.files['image']) enemy.imageUrl = `/uploads/${req.files['image'][0].filename}`;
+    
+    if (cardBackString) enemy.cardBackUrl = cardBackString;
+    else if (req.files['cardBack']) enemy.cardBackUrl = `/uploads/${req.files['cardBack'][0].filename}`;
+    
+    if (fieldString) enemy.fieldImageUrl = fieldString;
+    else if (req.files['field']) enemy.fieldImageUrl = `/uploads/${req.files['field'][0].filename}`;
+    
+    if (fieldTextureString) enemy.fieldTextureUrl = fieldTextureString;
+    else if (req.files['fieldTexture']) enemy.fieldTextureUrl = `/uploads/${req.files['fieldTexture'][0].filename}`;
 
     await enemy.save();
     res.json(enemy);

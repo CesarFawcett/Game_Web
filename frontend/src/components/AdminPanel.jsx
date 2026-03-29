@@ -153,6 +153,10 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
     if (cbFile) formData.append('cardBack', cbFile);
     if (fieldFile) formData.append('field', fieldFile);
     if (textureFile) formData.append('fieldTexture', textureFile);
+    if (selectedEnemy.imageString) formData.append('imageString', selectedEnemy.imageString);
+    if (selectedEnemy.cardBackString) formData.append('cardBackString', selectedEnemy.cardBackString);
+    if (selectedEnemy.fieldString) formData.append('fieldString', selectedEnemy.fieldString);
+    if (selectedEnemy.fieldTextureString) formData.append('fieldTextureString', selectedEnemy.fieldTextureString);
 
     try {
       if (selectedEnemy._id) await axios.put(`${baseUrl}/api/story/enemies/${selectedEnemy._id}`, formData);
@@ -198,6 +202,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
     formData.append('cardPool', JSON.stringify(selectedPack.cardPool || []));
 
     if (packFile) formData.append('image', packFile);
+    if (selectedPack.imageString) formData.append('imageString', selectedPack.imageString);
 
     try {
       if (selectedPack._id) await axios.put(`${apiUrl}/packs/${selectedPack._id}`, formData);
@@ -303,6 +308,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
     formData.append('enabled', selectedAvatar.enabled !== false); // default true
 
     if (avatarFile) formData.append('image', avatarFile);
+    if (selectedAvatar.imageString) formData.append('imageString', selectedAvatar.imageString);
 
     try {
       if (selectedAvatar._id) await axios.put(`${apiUrl}/avatars/${selectedAvatar._id}`, formData);
@@ -339,6 +345,11 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
       if (boardFieldFile) formData.append('fieldImage', boardFieldFile);
       if (boardTextureFile) formData.append('textureImage', boardTextureFile);
       if (boardBackFile) formData.append('cardBackImage', boardBackFile);
+      
+      if (selectedBoard.imageString) formData.append('imageString', selectedBoard.imageString);
+      if (selectedBoard.fieldImageString) formData.append('fieldImageString', selectedBoard.fieldImageString);
+      if (selectedBoard.textureImageString) formData.append('textureImageString', selectedBoard.textureImageString);
+      if (selectedBoard.cardBackImageString) formData.append('cardBackImageString', selectedBoard.cardBackImageString);
 
       try {
         if (selectedBoard._id) await axios.put(`${apiUrl}/boards/${selectedBoard._id}`, formData);
@@ -479,6 +490,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                             reader.readAsDataURL(e.target.files[0]);
                           }
                         }} accept="image/*" />
+                        <input type="text" placeholder="O link (URL de internet)" className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={editingCard ? (editingCard.imageUrlString || '') : (newCard.imageUrlString || '')} onChange={e => { const val = e.target.value; if (editingCard) setEditingCard({...editingCard, imageUrlString: val}); else setNewCard({...newCard, imageUrlString: val}); setPreviewUrl(val); }} />
                       </div>
                     </div>
                   <div className="field-group" style={{ gridColumn: '1 / -1', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
@@ -502,6 +514,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                             reader.readAsDataURL(e.target.files[0]);
                           }
                         }} accept="image/*" />
+                        <input type="text" placeholder="O link (URL de internet)" className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={editingCard ? (editingCard.cardBackImageString || '') : (newCard.cardBackImageString || '')} onChange={e => { const val = e.target.value; if (editingCard) setEditingCard({...editingCard, cardBackImageString: val}); else setNewCard({...newCard, cardBackImageString: val}); setCbPreviewUrl(val); }} />
                       </div>
                     ) : (
                       <div className="existing-backs-container">
@@ -667,18 +680,22 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                           <div className="upload-box">
                             <label>AVATAR</label>
                             <input type="file" onChange={e => setEnemyFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link (URL)" className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedEnemy?.imageString || ''} onChange={e => setSelectedEnemy({...selectedEnemy, imageString: e.target.value})} />
                           </div>
                           <div className="upload-box">
                             <label>DORSO CARTA</label>
                             <input type="file" onChange={e => setCbFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link (URL)" className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedEnemy?.cardBackString || ''} onChange={e => setSelectedEnemy({...selectedEnemy, cardBackString: e.target.value})} />
                           </div>
                           <div className="upload-box">
                             <label>FONDO CAMPO</label>
                             <input type="file" onChange={e => setFieldFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link (URL)" className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedEnemy?.fieldString || ''} onChange={e => setSelectedEnemy({...selectedEnemy, fieldString: e.target.value})} />
                           </div>
                           <div className="upload-box">
                             <label>TEXTURA CAMPO</label>
                             <input type="file" onChange={e => setTextureFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link (URL)" className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedEnemy?.fieldTextureString || ''} onChange={e => setSelectedEnemy({...selectedEnemy, fieldTextureString: e.target.value})} />
                           </div>
                         </div>
                       </div>
@@ -787,6 +804,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                           <div className="upload-box" style={{ gridColumn: '1 / -1' }}>
                             <label>IMAGEN DEL SOBRE (500x700)</label>
                             <input type="file" onChange={e => setPackFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link de internet (URL)..." className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedPack?.imageString || ''} onChange={e => setSelectedPack({...selectedPack, imageString: e.target.value})} />
                           </div>
                         </div>
                       </div>
@@ -905,6 +923,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                           <div className="upload-box" style={{ gridColumn: '1 / -1' }}>
                             <label>IMAGEN DEL AVATAR</label>
                             <input type="file" onChange={e => setAvatarFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link de internet (URL)..." className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedAvatar?.imageString || ''} onChange={e => setSelectedAvatar({...selectedAvatar, imageString: e.target.value})} />
                           </div>
                         </div>
                       </div>
@@ -976,18 +995,22 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                           <div className="upload-box">
                             <label>ICONO (MERCADO)</label>
                             <input type="file" onChange={e => setBoardFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link (URL)..." className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedBoard?.imageString || ''} onChange={e => setSelectedBoard({...selectedBoard, imageString: e.target.value})} />
                           </div>
                           <div className="upload-box">
                             <label>FONDO CAMPO</label>
                             <input type="file" onChange={e => setBoardFieldFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link (URL)..." className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedBoard?.fieldImageString || ''} onChange={e => setSelectedBoard({...selectedBoard, fieldImageString: e.target.value})} />
                           </div>
                           <div className="upload-box">
                             <label>TEXTURA CAMPO</label>
                             <input type="file" onChange={e => setBoardTextureFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link (URL)..." className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedBoard?.textureImageString || ''} onChange={e => setSelectedBoard({...selectedBoard, textureImageString: e.target.value})} />
                           </div>
                           <div className="upload-box">
                             <label>DORSO PERSONALIZADO</label>
                             <input type="file" onChange={e => setBoardBackFile(e.target.files[0])} accept="image/*" />
+                            <input type="text" placeholder="O link (URL)..." className="neon-input" style={{ width: '100%', marginTop: '5px', padding: '6px', fontSize: '0.65rem' }} value={selectedBoard?.cardBackImageString || ''} onChange={e => setSelectedBoard({...selectedBoard, cardBackImageString: e.target.value})} />
                           </div>
                         </div>
                       </div>

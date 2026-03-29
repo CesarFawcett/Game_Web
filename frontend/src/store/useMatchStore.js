@@ -212,6 +212,8 @@ const useMatchStore = create((set, get) => ({
 
     // Effects
     const totalPoison = s[oppPrefix + 'Field'].reduce((acc, c) => acc + (c?.ability === 'Veneno' ? Math.floor(c.attack * 0.2) : 0), 0);
+    const totalPutrefaction = s[oppPrefix + 'Field'].reduce((acc, c) => acc + (c?.ability === 'Putrefacción' ? Math.floor(c.attack * 0.3) : 0), 0);
+
     if (totalPoison > 0) {
       set(prev => ({
         [prefix + 'Field']: prev[prefix + 'Field'].map(c => {
@@ -224,7 +226,12 @@ const useMatchStore = create((set, get) => ({
           return { ...c, defense: ndef };
         })
       }));
-      get().addLog(`${isMe ? 'Tu' : 'Enemigo'} recibe ${totalPoison} daño de veneno.`);
+      get().addLog(`${isMe ? 'Tu' : 'Enemigo'} recibe ${totalPoison} daño de veneno en el campo.`);
+    }
+
+    if (totalPutrefaction > 0) {
+        set(prev => ({ [prefix + 'HP']: Math.max(0, prev[prefix + 'HP'] - totalPutrefaction) }));
+        get().addLog(`${isMe ? 'Tu HP' : 'HP Enemigo'} disminuye ${totalPutrefaction} por Putrefacción.`);
     }
 
     set(prev => ({
@@ -366,7 +373,7 @@ const useMatchStore = create((set, get) => ({
     if (!isRemote) get().emitAction('EXECUTE_ATTACK', { attackerIdx, targetIdx });
 
     if (!target) {
-        // Direct Attack Safety Check: Only if defender field has at least one empty slot
+        // Direct Attack Safety Check
         const dField = s[dPrefix + 'Field'];
         if (dField.every(slot => slot)) {
             get().addLog("¡No puedes atacar directo si el campo está lleno!");
@@ -376,8 +383,38 @@ const useMatchStore = create((set, get) => ({
         set(p => ({ [dPrefix + 'HP']: Math.max(0, p[dPrefix + 'HP'] - attacker.attack) }));
     } else {
         const damage = attacker.attack;
+
+        // --- Habilidad: Daño Perforante ---
+        if (attacker.ability === 'Daño Perforante' && damage > target.defense) {
+            const extra = damage - target.defense;
+            set(p => ({ [dPrefix + 'HP']: Math.max(0, p[dPrefix + 'HP'] - extra) }));
+            get().addLog(`¡Daño Perforante inflige ${extra} al HP rival!`);
+        }
+
+        // --- Habilidad: Fuego (Splash Damage) ---
+        if (attacker.ability === 'Fuego') {
+             const splash = Math.floor(damage * 0.4);
+             set(prev => {
+                const nextF = [...prev[dPrefix + 'Field']];
+                let splashCount = 0;
+                [targetIdx - 1, targetIdx + 1].forEach(idx => {
+                    if (idx >= 0 && idx < 3 && nextF[idx]) {
+                        nextF[idx] = { ...nextF[idx], defense: nextF[idx].defense - splash };
+                        splashCount++;
+                        if (nextF[idx].defense <= 0) {
+                             set({ [dPrefix + 'Graveyard']: [...get()[dPrefix + 'Graveyard'], nextF[idx]] });
+                             nextF[idx] = null;
+                        }
+                    }
+                });
+                if (splashCount > 0) get().addLog(`¡Fuego inflige ${splash} daño splash a los vecinos!`);
+                return { [dPrefix + 'Field']: nextF };
+             });
+        }
+
         set(prev => {
             const nextF = [...prev[dPrefix + 'Field']];
+            if (!nextF[targetIdx]) return {}; // Might have been destroyed by Fire splash already
             const nextT = { ...nextF[targetIdx] };
             nextT.defense -= damage;
             if (nextT.defense <= 0) {
@@ -391,16 +428,21 @@ const useMatchStore = create((set, get) => ({
         set(prev => {
             const nextF = [...prev[aPrefix + 'Field']];
             if (!nextF[attackerIdx]) return {};
-            const nextA = { ...nextF[attackerIdx] };
+            let nextA = { ...nextF[attackerIdx] };
+
+            // --- Habilidad: Robo de Vida ---
+            if (nextA.ability === 'Robo de Vida') {
+                const boost = Math.floor(nextA.attack * 0.2);
+                nextA.attack += boost;
+                nextA.defense += boost;
+                get().addLog(`¡Robo de Vida aumenta ATK/DEF de ${nextA.name} en ${boost}!`);
+            }
+
             nextA.attack = Math.max(0, nextA.attack - target.defense);
             nextA.attacksThisTurn += 1;
 
-            // Hielo Ability Check
-            if (attacker.ability === 'Hielo' && !nextF[attackerIdx]?.frozen) {
-                // Done later in the target update for consistency, but we can do it here for the attacker
-            }
             if (target.ability === 'Hielo') {
-                nextA.frozen = 3; // 2 turn skip
+                nextA.frozen = 3; 
                 get().addLog(`¡${attacker.name} ha sido congelado por el Hielo de ${target.name}!`);
             }
 

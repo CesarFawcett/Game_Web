@@ -84,12 +84,14 @@ const storyRoutes = require('./routes/story');
 const configRoutes = require('./routes/config');
 const duelRoutes = require('./routes/duels');
 const missionRoutes = require('./routes/missions');
+const rankingRoutes = require('./routes/ranking');
 app.use('/api/admin', adminRoutes);
 app.use('/api/shop', shopRoutes);
 app.use('/api/story', storyRoutes);
 app.use('/api/config', configRoutes);
 app.use('/api/duels', duelRoutes);
 app.use('/api/missions', missionRoutes);
+app.use('/api/ranking', rankingRoutes);
 
 app.get('/', (req, res) => {
   res.send('Game_Web API is running...');

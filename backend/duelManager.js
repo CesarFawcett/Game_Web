@@ -345,9 +345,30 @@ class DuelManager {
     }
   }
 
-  endDuel(roomID, winnerName) {
+  async endDuel(roomID, winnerName) {
     const duel = this.activeDuels.get(roomID);
     if (!duel) return;
+
+    if (winnerName) {
+      try {
+        const User = require('./models/User');
+        const loser = duel.players.find(p => p.name !== winnerName);
+        
+        // Winner gets +15 pts (Case-insensitive search for robustness)
+        await User.findOneAndUpdate(
+            { username: { $regex: new RegExp(`^${winnerName}$`, 'i') } }, 
+            { $inc: { rankingPoints: 15 } }
+        );
+        // Loser gets -5 pts (Case-insensitive search)
+        const loserDoc = await User.findOne({ username: { $regex: new RegExp(`^${loser.name}$`, 'i') } });
+        if (loserDoc) {
+          loserDoc.rankingPoints = Math.max(0, (loserDoc.rankingPoints || 0) - 5);
+          await loserDoc.save();
+        }
+      } catch (err) {
+        console.error("Error updating ranking points:", err);
+      }
+    }
     
     clearInterval(duel.interval);
     if (duel.rpsInterval) clearInterval(duel.rpsInterval);

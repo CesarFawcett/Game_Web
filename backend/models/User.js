@@ -28,6 +28,13 @@ const UserSchema = new mongoose.Schema({
   seenOnboarding: { type: [String], default: [] },
   duelsUnlocked: { type: Boolean, default: false },
   duelCooldownUntil: { type: Date, default: null },
+  // Ranking & Streak
+  rankingPoints: { type: Number, default: 0 },
+  lastLogin: { type: Date, default: Date.now },
+  connectionStreak: { type: Number, default: 1 },
+  lastRankingRewardClaimed: { type: Date, default: null },
+  lastStreakRewardClaimedAt: { type: Date, default: null },
+  seasonRewardClaimed: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model('User', UserSchema);

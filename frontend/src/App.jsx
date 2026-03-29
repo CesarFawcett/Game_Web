@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Plus, Play, User as UserIcon, Shield, Archive, Layout } from 'lucide-react';
+import { Plus, Play, User as UserIcon, Shield, Archive, Layout, Trophy, Flame, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from './store'; // Zustand
 import useMatchStore from './store/useMatchStore';
@@ -18,11 +18,11 @@ import ShopView from './components/ShopView';
 import StoryView from './components/StoryView';
 import DuelsView from './components/DuelsView';
 import DuelArena from './components/DuelArena';
+import RankingView from './components/RankingView';
 import SettingsModal from './components/SettingsModal';
 import MissionsModal from './components/Missions/MissionsModal';
 import ComingSoon from './components/ComingSoon';
 import OnboardingModal from './components/OnboardingModal'; // NEW
-import { Settings, Trophy } from 'lucide-react';
 import { startAmbient, stopAmbient } from './utils/sound';
 import logoG from './utils/img/IconoG.png';
 
@@ -174,6 +174,10 @@ function App() {
               <span className="hide-on-mobile" style={{ fontWeight: 600 }}>Misiones</span>
               {missions.dailyWins > 0 && <span className="badge-dot" />}
             </button>
+            <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem 1.2rem', border: '1px solid #f97316', borderRadius: '20px', background: 'rgba(249, 115, 22, 0.05)' }} title="Racha de Conexión">
+              <Flame size={20} color="#f97316" fill={user.canClaimStreakReward ? "#f97316" : "none"} />
+              <span style={{ fontWeight: 900, color: '#f97316', fontSize: '1.1rem' }}>{user.connectionStreak || 1}</span>
+            </div>
             <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem 1.2rem', border: '1px solid var(--accent-gold)', borderRadius: '20px', background: 'rgba(212, 175, 55, 0.05)' }}>
               <CoinsIcon />
               <span style={{ fontWeight: 900, color: 'var(--accent-gold)', fontSize: '1.1rem' }}>{(user.credits || 0).toLocaleString()}</span>
@@ -214,6 +218,7 @@ function App() {
               setActive={(path) => navigate(`/${path}`)} 
               icon={<Play size={18} />} 
             />
+            <TabItem id="ranking" label="Ranking" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Trophy size={18} />} />
             <TabItem id="story" label="Historia" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Play size={18} />} />
             <TabItem id="album" label="Álbum" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Layout size={18} />} />
             <TabItem id="shop" label="Compras" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Plus size={18} />} />
@@ -268,6 +273,11 @@ function App() {
                     setActiveDuel(enemy); 
                     console.log("Duel with", enemy.name); 
                   }} />
+                </motion.div>
+              } />
+              <Route path="/ranking" element={
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <RankingView user={user} setUser={(u) => useStore.getState().login(u)} baseUrl={BASE_URL} />
                 </motion.div>
               } />
               <Route path="/duels" element={<DuelsView />} />

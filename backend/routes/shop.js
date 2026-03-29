@@ -83,6 +83,42 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Contraseña incorrecta' });
     }
 
+    // --- Streak Logic ---
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const last = user.lastLogin ? new Date(user.lastLogin) : null;
+    const lastDay = last ? new Date(last.getFullYear(), last.getMonth(), last.getDate()) : null;
+
+    if (lastDay) {
+        const diff = (today.getTime() - lastDay.getTime()) / (1000 * 3600 * 24);
+        if (diff === 1) {
+            user.connectionStreak += 1;
+        } else if (diff > 1) {
+            user.connectionStreak = 1;
+        }
+        // If diff is 0, they already logged in today, do nothing to streak
+    } else {
+        user.connectionStreak = 1;
+    }
+    user.lastLogin = now;
+
+    // Award reward if streak is multiple of 5 and hasn't been awarded today
+    if (user.connectionStreak % 5 === 0 && (!user.lastStreakRewardClaimedAt || new Date(user.lastStreakRewardClaimedAt) < today)) {
+        const antiquityPack = await Pack.findOne({ name: /Antigüedad/i });
+        if (antiquityPack) {
+             // We'll give them the cards directly or a "free ticket"?
+             // Let's just add the pack contents or a notice.
+             // Manual claim according to user? 
+             // "Cada 5 dias un paquete Antiguedad gratis".
+             // I'll make it so they get a notification or just add it.
+             // But the user said "que sea manual". 
+             // OK, then I just flag it as available.
+             // BUT "si no lo piden se pierde". 
+             // I'll add a field 'canClaimStreakReward' or just use the date.
+        }
+    }
+    await user.save();
+
     res.json({
       success: true,
       user: {
@@ -99,7 +135,12 @@ router.post('/login', async (req, res) => {
         unlockedEnemyAvatars: user.unlockedEnemyAvatars || [],
         defeatedEnemies: user.defeatedEnemies || [],
         seenOnboarding: user.seenOnboarding || [],
-        duelsUnlocked: user.duelsUnlocked || false
+        duelsUnlocked: user.duelsUnlocked || false,
+        // New Ranking & Streak fields
+        rankingPoints: user.rankingPoints || 0,
+        connectionStreak: user.connectionStreak || 1,
+        lastRankingRewardClaimed: user.lastRankingRewardClaimed,
+        canClaimStreakReward: (user.connectionStreak % 5 === 0 && (!user.lastStreakRewardClaimedAt || new Date(user.lastStreakRewardClaimedAt) < today))
       }
     });
   } catch (err) {
@@ -419,22 +460,27 @@ router.post('/buy-board', async (req, res) => {
 router.post('/equip-board', async (req, res) => {
   try {
     const { username, boardUrl, fieldImageUrl, textureUrl, cardBackUrl } = req.body;
-    let user = await User.findOne({ username });
-    if (!user) return res.status(404).json({ error: 'User not found' });
+    
+    const updateData = {};
+    if (boardUrl !== undefined) updateData.equippedBoard = boardUrl;
+    if (fieldImageUrl !== undefined) updateData.equippedFieldImage = fieldImageUrl;
+    if (textureUrl !== undefined) updateData.equippedTexture = textureUrl;
+    if (cardBackUrl !== undefined) updateData.equippedCardBack = cardBackUrl;
 
-    user.equippedBoard = boardUrl;
-    user.equippedFieldImage = fieldImageUrl || '';
-    user.equippedTexture = textureUrl || '';
-    user.equippedCardBack = cardBackUrl || '';
+    const updatedUser = await User.findOneAndUpdate(
+      { username },
+      { $set: updateData },
+      { new: true }
+    );
 
-    await user.save();
+    if (!updatedUser) return res.status(404).json({ error: 'User not found' });
     
     res.json({ 
       success: true, 
-      equippedBoard: user.equippedBoard,
-      equippedFieldImage: user.equippedFieldImage,
-      equippedTexture: user.equippedTexture,
-      equippedCardBack: user.equippedCardBack
+      equippedBoard: updatedUser.equippedBoard,
+      equippedFieldImage: updatedUser.equippedFieldImage,
+      equippedTexture: updatedUser.equippedTexture,
+      equippedCardBack: updatedUser.equippedCardBack
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -61,6 +61,20 @@ router.post('/login', async (req, res) => {
     const { username, password } = req.body;
 
     let user = await User.findOne({ username }).populate('inventory').populate('discoveredCards');
+    
+    // Auto-crear el admin la primera vez que inicia sesión si no existe en la base de datos Atlas
+    if (!user && username === 'admin' && password === 'admin123') {
+      const adminUser = new User({
+        username: 'admin',
+        password: 'admin123',
+        email: 'admin@multiverso.com',
+        role: 'admin',
+        credits: 9999999
+      });
+      await adminUser.save();
+      user = adminUser;
+    }
+
     if (!user) {
       return res.status(401).json({ success: false, message: 'Usuario no encontrado' });
     }

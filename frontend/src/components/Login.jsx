@@ -44,7 +44,7 @@ function Login({ onLogin, shopUrl }) {
         onLogin(userData);
       }
     } catch (err) {
-      setError(err.response?.data?.message || (isRegister ? 'ERROR EN EL REGISTRO' : 'ACCESO DENEGADO - VERIFICA TUS CREDENCIALES'));
+      setError(err.response?.data?.message || err.response?.data?.error || err.message || (isRegister ? 'ERROR EN EL REGISTRO' : 'ACCESO DENEGADO - VERIFICA TUS CREDENCIALES'));
     } finally {
       setLoading(false);
     }

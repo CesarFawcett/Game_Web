@@ -46,7 +46,7 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
 
     setIsDeleting(true);
     console.log(`Intentando eliminar cuenta: ${username}`);
-    
+
     try {
       const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
       const res = await axios.delete(`${cleanBaseUrl}/api/shop/delete-account/${username}`);
@@ -76,11 +76,11 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
   };
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="modal-overlay"
     >
-      <motion.div 
+      <motion.div
         initial={{ scale: 0.8, y: 50 }} animate={{ scale: 1, y: 0 }}
         className="settings-card glass-panel"
       >
@@ -102,9 +102,9 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
               <button className="mute-btn-mini" onClick={handleMute}>
                 {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
               </button>
-              <input 
-                type="range" min="0" max="1" step="0.01" 
-                value={vol} onChange={handleVolChange} 
+              <input
+                type="range" min="0" max="1" step="0.01"
+                value={vol} onChange={handleVolChange}
                 className="pixel-slider"
               />
             </div>
@@ -112,58 +112,58 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
 
           {user && (
             <div className="setting-item" style={{ flexDirection: 'column', alignItems: 'flex-start', marginTop: '2rem' }}>
-               <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
-                 <UserIcon size={18} className="primary-text" />
-                 <label>AVATAR EQUIPADO</label>
-               </div>
-               
-               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', width: '100%' }}>
-                   <div 
-                     onClick={() => handleEquip('/default.png')}
-                     style={{ 
-                         width: '60px', height: '75px', cursor: 'pointer', borderRadius: '8px', 
-                         border: user.equippedAvatar === '/default.png' ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
-                         boxShadow: user.equippedAvatar === '/default.png' ? '0 0 10px rgba(212,175,55,0.5)' : 'none',
-                         background: `url(${baseUrl}/default.png) center/cover`
-                     }}
-                     title="Predeterminado"
-                   />
-                   {avatars.filter(a => user.ownedAvatars?.includes(a._id)).map(a => (
-                      <div 
-                        key={a._id}
-                        onClick={() => handleEquip(a.imageUrl)}
-                        style={{ 
-                            width: '60px', height: '75px', cursor: 'pointer', borderRadius: '8px', 
-                            border: user.equippedAvatar === a.imageUrl ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
-                            boxShadow: user.equippedAvatar === a.imageUrl ? '0 0 10px rgba(212,175,55,0.5)' : 'none',
-                            background: `url(${baseUrl}${a.imageUrl}) center/cover`
-                        }}
-                        title={a.name}
-                      />
-                   ))}
-                   {(user.unlockedEnemyAvatars || []).map((url, idx) => (
-                      <div 
-                        key={`enemy-avatar-${idx}`}
-                        onClick={() => handleEquip(url)}
-                        style={{ 
-                            width: '60px', height: '75px', cursor: 'pointer', borderRadius: '8px', position: 'relative',
-                            border: user.equippedAvatar === url ? '3px solid var(--accent-gold)' : '2px solid rgba(239, 68, 68, 0.4)',
-                            boxShadow: user.equippedAvatar === url ? '0 0 10px rgba(212,175,55,0.5)' : '0 0 6px rgba(239, 68, 68, 0.2)',
-                            background: `url(${baseUrl}${url}) center/cover`
-                        }}
-                        title="Avatar de Enemigo"
-                      >
-                        <span style={{ position: 'absolute', top: '-6px', right: '-6px', fontSize: '14px' }}>🏆</span>
-                      </div>
-                   ))}
-               </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '1rem' }}>
+                <UserIcon size={18} className="primary-text" />
+                <label>AVATAR EQUIPADO</label>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.8rem', width: '100%' }}>
+                <div
+                  onClick={() => handleEquip('/default.png')}
+                  style={{
+                    width: '60px', height: '75px', cursor: 'pointer', borderRadius: '8px',
+                    border: user.equippedAvatar === '/default.png' ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
+                    boxShadow: user.equippedAvatar === '/default.png' ? '0 0 10px rgba(212,175,55,0.5)' : 'none',
+                    background: `url(${baseUrl}/default.png) center/cover`
+                  }}
+                  title="Predeterminado"
+                />
+                {avatars.filter(a => user.ownedAvatars?.includes(a._id)).map(a => (
+                  <div
+                    key={a._id}
+                    onClick={() => handleEquip(a.imageUrl)}
+                    style={{
+                      width: '60px', height: '75px', cursor: 'pointer', borderRadius: '8px',
+                      border: user.equippedAvatar === a.imageUrl ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
+                      boxShadow: user.equippedAvatar === a.imageUrl ? '0 0 10px rgba(212,175,55,0.5)' : 'none',
+                      background: `url(${a.imageUrl && typeof a.imageUrl === 'string' && a.imageUrl.startsWith('http') ? '' : baseUrl}${a.imageUrl}) center/cover`
+                    }}
+                    title={a.name}
+                  />
+                ))}
+                {(user.unlockedEnemyAvatars || []).map((url, idx) => (
+                  <div
+                    key={`enemy-avatar-${idx}`}
+                    onClick={() => handleEquip(url)}
+                    style={{
+                      width: '60px', height: '75px', cursor: 'pointer', borderRadius: '8px', position: 'relative',
+                      border: user.equippedAvatar === url ? '3px solid var(--accent-gold)' : '2px solid rgba(239, 68, 68, 0.4)',
+                      boxShadow: user.equippedAvatar === url ? '0 0 10px rgba(212,175,55,0.5)' : '0 0 6px rgba(239, 68, 68, 0.2)',
+                      background: `url(${url && typeof url === 'string' && url.startsWith('http') ? '' : baseUrl}${url}) center/cover`
+                    }}
+                    title="Avatar de Enemigo"
+                  >
+                    <span style={{ position: 'absolute', top: '-6px', right: '-6px', fontSize: '14px' }}>🏆</span>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
 
           <div style={{ marginTop: '3rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             {!showConfirmDelete ? (
-              <button 
-                className="btn-danger-outline" 
+              <button
+                className="btn-danger-outline"
                 onClick={() => setShowConfirmDelete(true)}
                 style={{ width: '100%', padding: '0.8rem', fontSize: '0.8rem', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '10px', background: 'transparent', cursor: 'pointer', fontWeight: 600 }}
               >
@@ -191,7 +191,7 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
           <p style={{ fontSize: '0.55rem', letterSpacing: '2px', fontWeight: 800 }}>GAME BY</p>
           <img src={logoG} alt="Designer Logo" style={{ width: '30px', height: 'auto', filter: 'grayscale(1) brightness(2)' }} />
           <p style={{ fontSize: '0.6rem', marginTop: '0.4rem' }}>
-            VERSIÓN 1.2.1 • MADE BY AGENTS
+            VERSIÓN 1.2.1
           </p>
         </div>
       </motion.div>

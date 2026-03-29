@@ -6,7 +6,7 @@ const CardEntity = ({ card, baseUrl }) => {
       {card.frozen > 0 && <div className="frozen-overlay" />}
       {card.equippedSpells && card.equippedSpells.length > 0 && <div className="spell-equip-badge">+{card.equippedSpells.length}</div>}
       
-      <img src={`${baseUrl}${card.imageUrl}`} alt={card.name} draggable="false" />
+      <img src={`${card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http') ? '' : baseUrl}${card.imageUrl}`} alt={card.name} draggable="false" />
       
       <div className="card-stats">
         <div className="stat-item"><span className="stat-atk">{card.attack}</span>ATK</div>

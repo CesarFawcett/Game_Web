@@ -526,7 +526,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                                 className={`back-option ${selectedBack === back ? 'selected' : ''}`}
                                 onClick={() => {
                                   setSelectedBack(back);
-                                  setCbPreviewUrl(`${baseUrl}${back}`);
+                                  setCbPreviewUrl(`${back && typeof back === 'string' && back.startsWith('http') ? '' : baseUrl}${back}`);
                                 }}
                                 style={{
                                   width: '50px',
@@ -534,7 +534,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                                   flexShrink: 0,
                                   borderRadius: '4px',
                                   border: `2px solid ${selectedBack === back ? 'var(--primary)' : 'transparent'}`,
-                                  background: `url(${baseUrl}${back}) center/cover`,
+                                  background: `url(${back && typeof back === 'string' && back.startsWith('http') ? '' : baseUrl}${back}) center/cover`,
                                   cursor: 'pointer',
                                   transition: '0.2s',
                                   boxShadow: selectedBack === back ? '0 0 10px var(--primary)' : 'none'
@@ -557,7 +557,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                 <div className="live-preview-box">
                   <p style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 800, textAlign: 'center', marginBottom: '10px' }}>VISTA PREVIA</p>
                   <div className="card-item-preview">
-                    <div className="preview-art" style={{ background: `url(${previewUrl || (editingCard ? `${baseUrl}${editingCard.imageUrl}` : '')}) center/cover, #000` }}>
+                    <div className="preview-art" style={{ background: `url(${previewUrl || (editingCard ? `${editingCard.imageUrl && typeof editingCard.imageUrl === 'string' && editingCard.imageUrl.startsWith('http') ? '' : baseUrl}${editingCard.imageUrl}` : '')}) center/cover, #000` }}>
                       <div className="preview-ability">{ABILITY_ICONS[(editingCard || newCard).ability] || ABILITY_ICONS['Ninguno']}</div>
                     </div>
                     <div className="preview-info">
@@ -591,7 +591,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                     }}
                     style={{ position: 'relative' }}
                   >
-                    <img src={`${baseUrl}${card.imageUrl}`} alt={card.name} />
+                    <img src={`${card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http') ? '' : baseUrl}${card.imageUrl}`} alt={card.name} />
 
                     <button
                       className="arcade-btn"
@@ -629,7 +629,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                 <div className="enemy-admin-list scrollbar">
                   {enemies.sort((a, b) => a.rankIndex - b.rankIndex).map(e => (
                     <div key={e._id} className={`enemy-item-admin ${selectedEnemy?._id === e._id ? 'active' : ''}`} onClick={() => setSelectedEnemy(e)}>
-                      <img src={`${baseUrl}${e.imageUrl}`} alt={e.name} />
+                      <img src={`${e.imageUrl && typeof e.imageUrl === 'string' && e.imageUrl.startsWith('http') ? '' : baseUrl}${e.imageUrl}`} alt={e.name} />
                       <div className="enemy-item-details">
                         <p className="e-name">{e.name}</p>
                         <p className="e-meta">Rank: {e.rankIndex} • {e.hp} HP • {e.deck?.length || 0} Cartas</p>
@@ -718,7 +718,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                         <div className="available-cards-mini-grid scrollbar">
                           {cards.map(card => (
                             <div key={`av-${card._id}`} className="card-selector-item" onClick={() => toggleCardInEnemyDeck(card._id)}>
-                              <img src={`${baseUrl}${card.imageUrl}`} alt={card.name} title={card.name} />
+                              <img src={`${card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http') ? '' : baseUrl}${card.imageUrl}`} alt={card.name} title={card.name} />
                               <div className="card-count-badge">
                                 {selectedEnemy.deck?.filter(id => id === card._id).length || 0}
                               </div>
@@ -753,7 +753,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                 <div className="enemy-admin-list scrollbar">
                   {packs.map(p => (
                     <div key={p._id} className={`enemy-item-admin ${selectedPack?._id === p._id ? 'active' : ''}`} onClick={() => setSelectedPack(p)}>
-                      <div style={{ width: '40px', height: '60px', background: p.imageUrl ? `url(${baseUrl}${p.imageUrl}) center/cover` : '#000', borderRadius: '4px' }}></div>
+                      <div style={{ width: '40px', height: '60px', background: p.imageUrl ? `url(${p.imageUrl && typeof p.imageUrl === 'string' && p.imageUrl.startsWith('http') ? '' : baseUrl}${p.imageUrl}) center/cover` : '#000', borderRadius: '4px' }}></div>
                       <div className="enemy-item-details">
                         <p className="e-name">{p.name}</p>
                         <p className="e-meta">{p.price} 🪙 • {p.cardsPerPack} Cartas</p>
@@ -847,7 +847,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                             const inPool = selectedPack.cardPool?.find(p => (p.cardId?._id || p.cardId) === card._id);
                             return (
                               <div key={`ap-${card._id}`} className={`card-selector-item ${inPool ? 'selected' : ''}`} onClick={() => addCardToPackPool(card._id)}>
-                                <img src={`${baseUrl}${card.imageUrl}`} alt={card.name} title={card.name} style={{ opacity: inPool ? 0.3 : 1 }} />
+                                <img src={`${card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http') ? '' : baseUrl}${card.imageUrl}`} alt={card.name} title={card.name} style={{ opacity: inPool ? 0.3 : 1 }} />
                               </div>
                             );
                           })}
@@ -879,7 +879,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                 <div className="enemy-admin-list scrollbar">
                   {avatars.map(a => (
                     <div key={a._id} className={`enemy-item-admin ${selectedAvatar?._id === a._id ? 'active' : ''}`} onClick={() => setSelectedAvatar(a)}>
-                      <div style={{ width: '40px', height: '40px', background: a.imageUrl ? `url(${baseUrl}${a.imageUrl}) center/cover` : '#000', borderRadius: '4px' }}></div>
+                      <div style={{ width: '40px', height: '40px', background: a.imageUrl ? `url(${a.imageUrl && typeof a.imageUrl === 'string' && a.imageUrl.startsWith('http') ? '' : baseUrl}${a.imageUrl}) center/cover` : '#000', borderRadius: '4px' }}></div>
                       <div className="enemy-item-details">
                         <p className="e-name">{a.name}</p>
                         <p className="e-meta">{a.price} 🪙</p>
@@ -952,7 +952,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                 <div className="enemy-admin-list scrollbar">
                   {boards.map(b => (
                     <div key={b._id} className={`enemy-item-admin ${selectedBoard?._id === b._id ? 'active' : ''}`} onClick={() => setSelectedBoard(b)}>
-                      <div style={{ width: '60px', height: '40px', background: b.imageUrl ? `url(${baseUrl}${b.imageUrl}) center/cover` : '#000', borderRadius: '4px' }}></div>
+                      <div style={{ width: '60px', height: '40px', background: b.imageUrl ? `url(${b.imageUrl && typeof b.imageUrl === 'string' && b.imageUrl.startsWith('http') ? '' : baseUrl}${b.imageUrl}) center/cover` : '#000', borderRadius: '4px' }}></div>
                       <div className="enemy-item-details">
                         <p className="e-name">{b.name}</p>
                         <p className="e-meta">{b.price} 🪙</p>
@@ -1080,7 +1080,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                               await axios.post(`${baseUrl}/api/admin/chests`, { milestone: m, coinsPrizes: config.coinsPrizes, cardsPrizes: newCards });
                               fetchChests();
                             }}>
-                              <img src={`${baseUrl}${card.imageUrl}`} alt={card.name} />
+                              <img src={`${card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http') ? '' : baseUrl}${card.imageUrl}`} alt={card.name} />
                             </div>
                           ))}
                         </div>

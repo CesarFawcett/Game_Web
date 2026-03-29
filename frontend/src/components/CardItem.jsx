@@ -9,7 +9,7 @@ function CardItem({ info, count, inDeckCount, onAdd, onRemove, onSell, baseUrl }
       whileHover={{ y: -10, scale: 1.02 }}
       layoutId={info._id}
     >
-      <div style={{ height: '70%', background: `url(${baseUrl}${info.imageUrl}) center/cover`, position: 'relative' }}>
+      <div style={{ height: '70%', background: `url(${info.imageUrl && typeof info.imageUrl === 'string' && info.imageUrl.startsWith('http') ? '' : baseUrl}${info.imageUrl}) center/cover`, position: 'relative' }}>
         {/* Count Badge */}
         {count > 1 && (
           <div style={{

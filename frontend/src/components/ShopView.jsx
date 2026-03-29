@@ -286,7 +286,7 @@ function ChestCard({ title, price, description, onPurchase, loading, userCredits
           style={{
              width: '120px', 
              height: '168px', 
-             background: `url(${baseUrl}${imageUrl}) center/cover`,
+             background: `url(${imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http') ? '' : baseUrl}${imageUrl}) center/cover`,
              borderRadius: '8px',
              boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
           }}
@@ -322,7 +322,7 @@ function AvatarCard({ title, price, onPurchase, onEquip, loading, userCredits, i
           style={{
              width: '120px', 
              height: '150px', 
-             background: `url(${baseUrl}${imageUrl}) center/cover`,
+             background: `url(${imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http') ? '' : baseUrl}${imageUrl}) center/cover`,
              borderRadius: '8px',
              border: isEquipped ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
              boxShadow: isEquipped ? '0 0 15px rgba(212, 175, 55, 0.5)' : 'none'
@@ -369,7 +369,7 @@ function BoardCard({ title, price, onPurchase, onEquip, loading, userCredits, is
           style={{
              width: '180px', 
              height: '110px', 
-             background: `url(${baseUrl}${imageUrl}) center/cover`,
+             background: `url(${imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http') ? '' : baseUrl}${imageUrl}) center/cover`,
              borderRadius: '8px',
              border: isEquipped ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
              boxShadow: isEquipped ? '0 0 15px rgba(212, 175, 55, 0.5)' : 'none'

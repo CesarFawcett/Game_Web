@@ -64,7 +64,7 @@ function StoryView({ user, baseUrl, onStartDuel }) {
                 height: '120px', 
                 margin: '0 auto 1.5rem', 
                 borderRadius: '50%', 
-                background: `url(${baseUrl}${enemy.imageUrl}) center/cover`,
+                background: `url(${enemy.imageUrl && typeof enemy.imageUrl === 'string' && enemy.imageUrl.startsWith('http') ? '' : baseUrl}${enemy.imageUrl}) center/cover`,
                 backgroundSize: 'cover',
                 border: `4px solid ${isEnabled ? 'var(--primary)' : 'var(--text-muted)'}`,
                 boxShadow: isEnabled ? '0 0 20px rgba(99, 102, 241, 0.3)' : 'none',

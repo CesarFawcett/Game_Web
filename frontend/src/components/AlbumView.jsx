@@ -95,7 +95,7 @@ function AlbumView({ cards, discoveredIds, baseUrl }) {
               >
                 {isDiscovered ? (
                   <div style={{ height: '100%', position: 'relative' }}>
-                    <div style={{ height: '70%', background: `url(${baseUrl}${card.imageUrl}) center/cover`, borderRadius: '8px 8px 0 0' }}></div>
+                    <div style={{ height: '70%', background: `url(${card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http') ? '' : baseUrl}${card.imageUrl}) center/cover`, borderRadius: '8px 8px 0 0' }}></div>
                     <div style={{ padding: '1rem' }}>
                       <p style={{ fontSize: '1rem', fontWeight: 900, textAlign: 'center' }}>{card.name}</p>
                       <div style={{ display: 'flex', justifyContent: 'center', gap: '10px', marginTop: '0.5rem', color: 'var(--accent-gold)', fontSize: '0.8rem', fontWeight: 900 }}>
@@ -109,7 +109,7 @@ function AlbumView({ cards, discoveredIds, baseUrl }) {
                     height: '100%', 
                     width: '100%', 
                     background: card.cardBackImageUrl 
-                        ? `url(${baseUrl}${card.cardBackImageUrl}) center/cover` 
+                        ? `url(${card.cardBackImageUrl && typeof card.cardBackImageUrl === 'string' && card.cardBackImageUrl.startsWith('http') ? '' : baseUrl}${card.cardBackImageUrl}) center/cover` 
                         : 'repeating-linear-gradient(45deg, rgba(15,23,42,0.9), rgba(15,23,42,0.9) 10px, rgba(30,41,59,0.9) 10px, rgba(30,41,59,0.9) 20px)',
                     display: 'flex',
                     alignItems: 'center',

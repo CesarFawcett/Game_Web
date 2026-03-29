@@ -31,7 +31,7 @@ const HandArea = ({ baseUrl }) => {
                 animate={{ opacity: 1, y: store.selectedHandIdx === idx ? -50 : 0, scale: store.selectedHandIdx === idx ? 1.2 : 1, zIndex: store.selectedHandIdx === idx ? 10 : 1 }}
                 exit={{ opacity: 0, scale: 0.5 }} whileHover={{ y: store.selectedHandIdx === idx ? -50 : -20, scale: 1.1, zIndex: 10 }}
               >
-                <img src={`${baseUrl}${card.imageUrl}`} alt={card.name} draggable="false" />
+                <img src={`${card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http') ? '' : baseUrl}${card.imageUrl}`} alt={card.name} draggable="false" />
                 {card.type !== 'Monster' && (
                   <div style={{ position: 'absolute', top: -10, left: -10, background: card.type === 'Spell' ? '#a855f7' : '#ef4444', color: 'white', padding: '2px 8px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 'bold' }}>
                     {card.type === 'Spell' ? 'Hechizo' : 'Trampa'}

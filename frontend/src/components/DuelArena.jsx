@@ -139,12 +139,12 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
   const ePOV = store.getPOVState('enemy');
 
   const enemyFieldTexture = ePOV.data?.fieldTextureUrl
-    ? { backgroundImage: `url(${baseUrl}${ePOV.data.fieldTextureUrl})`, backgroundSize: 'cover' }
+    ? { backgroundImage: `url(${ePOV.data.fieldTextureUrl && typeof ePOV.data.fieldTextureUrl === 'string' && ePOV.data.fieldTextureUrl.startsWith('http') ? '' : baseUrl}${ePOV.data.fieldTextureUrl})`, backgroundSize: 'cover' }
     : {};
   const playerFieldTexture = pPOV.data?.equippedTexture
-    ? { backgroundImage: `url(${baseUrl}${pPOV.data.equippedTexture})`, backgroundSize: 'cover' }
+    ? { backgroundImage: `url(${pPOV.data.equippedTexture && typeof pPOV.data.equippedTexture === 'string' && pPOV.data.equippedTexture.startsWith('http') ? '' : baseUrl}${pPOV.data.equippedTexture})`, backgroundSize: 'cover' }
     : (pPOV.data?.equippedBoard 
-      ? { backgroundImage: `url(${baseUrl}${pPOV.data.equippedBoard})`, backgroundSize: 'cover' } 
+      ? { backgroundImage: `url(${pPOV.data.equippedBoard && typeof pPOV.data.equippedBoard === 'string' && pPOV.data.equippedBoard.startsWith('http') ? '' : baseUrl}${pPOV.data.equippedBoard})`, backgroundSize: 'cover' } 
       : {});
 
   const renderEnemySide = (profileProps, deckLimit, hp) => {
@@ -154,12 +154,12 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
         <div className="field-section" style={enemyFieldTexture}>
           <div className="trap-row enemy-traps">
             <div className="deck-box mini-deck" style={{ marginRight: '0.8rem' }}>
-              <div className="deck-texture" style={{ background: ePOV.data?.cardBackUrl ? `url(${baseUrl}${ePOV.data.cardBackUrl}) center/cover` : (ePOV.data?.cardBackImageUrl ? `url(${baseUrl}${ePOV.data.cardBackImageUrl}) center/cover` : 'var(--accent-gold)') }}></div>
+              <div className="deck-texture" style={{ background: ePOV.data?.cardBackUrl ? `url(${ePOV.data.cardBackUrl && typeof ePOV.data.cardBackUrl === 'string' && ePOV.data.cardBackUrl.startsWith('http') ? '' : baseUrl}${ePOV.data.cardBackUrl}) center/cover` : (ePOV.data?.cardBackImageUrl ? `url(${ePOV.data.cardBackImageUrl && typeof ePOV.data.cardBackImageUrl === 'string' && ePOV.data.cardBackImageUrl.startsWith('http') ? '' : baseUrl}${ePOV.data.cardBackImageUrl}) center/cover` : 'var(--accent-gold)') }}></div>
               <span className="deck-count">{deckLimit}</span>
             </div>
             {[2, 1, 0].map(i => (
               <div key={`trap-enemy-${i}`} className="side-trap-slot" onMouseEnter={() => traps[i] && store.setSetter('hoveredCard', traps[i])} onMouseLeave={() => store.setSetter('hoveredCard', null)}>
-                {traps[i] ? <img src={`${baseUrl}${traps[i].imageUrl}`} alt="Trap" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="trap-text">TRAMPA</span>}
+                {traps[i] ? <img src={`${traps[i].imageUrl && typeof traps[i].imageUrl === 'string' && traps[i].imageUrl.startsWith('http') ? '' : baseUrl}${traps[i].imageUrl}`} alt="Trap" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="trap-text">TRAMPA</span>}
               </div>
             ))}
           </div>
@@ -167,7 +167,7 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
             <div className="side-trap-slot graveyard-slot enemy-graveyard" title="Cementerio Enemigo">
               {ePOV.graveyard.length > 0 ? (
                 <div className="arena-card small-card">
-                  <img src={`${baseUrl}${ePOV.graveyard[ePOV.graveyard.length - 1].imageUrl}`} alt="Grave" />
+                  <img src={`${ePOV.graveyard[ePOV.graveyard.length - 1].imageUrl && typeof ePOV.graveyard[ePOV.graveyard.length - 1].imageUrl === 'string' && ePOV.graveyard[ePOV.graveyard.length - 1].imageUrl.startsWith('http') ? '' : baseUrl}${ePOV.graveyard[ePOV.graveyard.length - 1].imageUrl}`} alt="Grave" />
                 </div>
               ) : <span className="trap-text">CEMENTERIO</span>}
             </div>
@@ -191,7 +191,7 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
             <div className="side-trap-slot graveyard-slot player-graveyard" title="Cementerio">
               {pPOV.graveyard.length > 0 ? (
                 <div className="arena-card small-card">
-                  <img src={`${baseUrl}${pPOV.graveyard[pPOV.graveyard.length - 1].imageUrl}`} alt="Grave" />
+                  <img src={`${pPOV.graveyard[pPOV.graveyard.length - 1].imageUrl && typeof pPOV.graveyard[pPOV.graveyard.length - 1].imageUrl === 'string' && pPOV.graveyard[pPOV.graveyard.length - 1].imageUrl.startsWith('http') ? '' : baseUrl}${pPOV.graveyard[pPOV.graveyard.length - 1].imageUrl}`} alt="Grave" />
                 </div>
               ) : <span className="trap-text" style={{ color: '#3b82f6' }}>CEMENTERIO</span>}
             </div>
@@ -204,14 +204,14 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
               const canPlace = isTrapSelected && !traps[i];
               return (
                 <div key={`trap-player-${i}`} className={`side-trap-slot ${canPlace ? 'targetable' : ''}`} onClick={() => canPlace && store.activateTrap(store.selectedHandIdx)} onMouseEnter={() => traps[i] && store.setSetter('hoveredCard', traps[i])} onMouseLeave={() => store.setSetter('hoveredCard', null)}>
-                  {traps[i] ? <img src={`${baseUrl}${traps[i].imageUrl}`} alt="Trap" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="trap-text">TRAMPA</span>}
+                  {traps[i] ? <img src={`${traps[i].imageUrl && typeof traps[i].imageUrl === 'string' && traps[i].imageUrl.startsWith('http') ? '' : baseUrl}${traps[i].imageUrl}`} alt="Trap" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="trap-text">TRAMPA</span>}
                 </div>
               );
             })}
             <div className="deck-box" style={{ marginLeft: '0.8rem' }}>
               <div className="deck-texture" style={{ 
                 background: pPOV.data?.equippedCardBack 
-                  ? `url(${baseUrl}${pPOV.data.equippedCardBack}) center/cover` 
+                  ? `url(${pPOV.data.equippedCardBack && typeof pPOV.data.equippedCardBack === 'string' && pPOV.data.equippedCardBack.startsWith('http') ? '' : baseUrl}${pPOV.data.equippedCardBack}) center/cover` 
                   : 'var(--primary)' 
               }}></div>
               <span className="deck-count">{deckLimit}</span>
@@ -223,11 +223,11 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
   };
 
   const arenaBgStyle = pPOV.data?.equippedFieldImage
-    ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${baseUrl}${pPOV.data.equippedFieldImage}) center/cover no-repeat` }
+    ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${pPOV.data.equippedFieldImage && typeof pPOV.data.equippedFieldImage === 'string' && pPOV.data.equippedFieldImage.startsWith('http') ? '' : baseUrl}${pPOV.data.equippedFieldImage}) center/cover no-repeat` }
     : (pPOV.data?.equippedBoard
-      ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${baseUrl}${pPOV.data.equippedBoard}) center/cover no-repeat` }
+      ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${pPOV.data.equippedBoard && typeof pPOV.data.equippedBoard === 'string' && pPOV.data.equippedBoard.startsWith('http') ? '' : baseUrl}${pPOV.data.equippedBoard}) center/cover no-repeat` }
       : (ePOV.data?.fieldImageUrl
-        ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${baseUrl}${ePOV.data.fieldImageUrl}) center/cover no-repeat` }
+        ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${ePOV.data.fieldImageUrl && typeof ePOV.data.fieldImageUrl === 'string' && ePOV.data.fieldImageUrl.startsWith('http') ? '' : baseUrl}${ePOV.data.fieldImageUrl}) center/cover no-repeat` }
         : {}));
 
   return (
@@ -260,11 +260,11 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
                 <h2 className="gradient-text">CARTAS APOSTADAS</h2>
                 <div className="bets-display">
                   <div className="bet-item">
-                     <p>TU APUESTA</p> {store.myBet && <img src={`${baseUrl}${store.myBet.imageUrl}`} alt="My Bet" className="bet-img" />}
+                     <p>TU APUESTA</p> {store.myBet && <img src={`${store.myBet.imageUrl && typeof store.myBet.imageUrl === 'string' && store.myBet.imageUrl.startsWith('http') ? '' : baseUrl}${store.myBet.imageUrl}`} alt="My Bet" className="bet-img" />}
                   </div>
                   <Swords size={48} className="text-gold" />
                   <div className="bet-item">
-                     <p>APUESTA RIVAL</p> {store.opponentBet && <img src={`${baseUrl}${store.opponentBet.imageUrl}`} alt="Opponent Bet" className="bet-img" />}
+                     <p>APUESTA RIVAL</p> {store.opponentBet && <img src={`${store.opponentBet.imageUrl && typeof store.opponentBet.imageUrl === 'string' && store.opponentBet.imageUrl.startsWith('http') ? '' : baseUrl}${store.opponentBet.imageUrl}`} alt="Opponent Bet" className="bet-img" />}
                   </div>
                 </div>
               </div>
@@ -312,7 +312,7 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
 
         <div className="duel-character-container player-character">
           <div className="character-avatar-wrap">
-            <img src={`${baseUrl}${pPOV.data?.equippedAvatar || pPOV.data?.imageUrl || '/default.png'}`} alt="Player Avatar" />
+            <img src={`${pPOV.data?.equippedAvatar || pPOV.data?.imageUrl || '/default.png' && typeof pPOV.data?.equippedAvatar || pPOV.data?.imageUrl || '/default.png' === 'string' && pPOV.data?.equippedAvatar || pPOV.data?.imageUrl || '/default.png'.startsWith('http') ? '' : baseUrl}${pPOV.data?.equippedAvatar || pPOV.data?.imageUrl || '/default.png'}`} alt="Player Avatar" />
             <div className="character-stats-overlay">
               <p className="hero-label">{pPOV.data?.name} • {Math.max(0, pPOV.hp)} LP</p>
               <div className="hp-bar player-hp"><motion.div animate={{ width: `${Math.max(0, (pPOV.hp / (pPOV.maxHP || 1000)) * 100)}%` }} /></div>
@@ -321,7 +321,7 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
         </div>
         <div className="duel-character-container enemy-character">
           <div className="character-avatar-wrap">
-            <img src={`${baseUrl}${ePOV.data?.equippedAvatar || ePOV.data?.imageUrl || '/default.png'}`} alt="Enemy Avatar" />
+            <img src={`${ePOV.data?.equippedAvatar || ePOV.data?.imageUrl || '/default.png' && typeof ePOV.data?.equippedAvatar || ePOV.data?.imageUrl || '/default.png' === 'string' && ePOV.data?.equippedAvatar || ePOV.data?.imageUrl || '/default.png'.startsWith('http') ? '' : baseUrl}${ePOV.data?.equippedAvatar || ePOV.data?.imageUrl || '/default.png'}`} alt="Enemy Avatar" />
             <div className="character-stats-overlay">
               <p className="hero-label" style={{ color: '#ef4444' }}>{ePOV.data?.name} • {Math.max(0, ePOV.hp)} LP</p>
               <div className="hp-bar enemy-hp"><motion.div animate={{ width: `${Math.max(0, (ePOV.hp / (ePOV.maxHP || 1000)) * 100)}%` }} /></div>

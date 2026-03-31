@@ -18,9 +18,9 @@ function Login({ onLogin, shopUrl }) {
     try {
       const endpoint = isRegister ? 'register' : 'login';
       const payload = isRegister ? { username, email, password } : { username, password };
-      
+
       const res = await axios.post(`${shopUrl}/${endpoint}`, payload);
-      
+
       if (res.data.success) {
         const userData = {
           name: res.data.user.username,
@@ -37,7 +37,6 @@ function Login({ onLogin, shopUrl }) {
           defeatedEnemies: res.data.user.defeatedEnemies || [],
           seenOnboarding: res.data.user.seenOnboarding || []
         };
-        // Add a temporary flag if it's a new registration to trigger the specific redirect
         if (isRegister) {
           userData.justRegistered = true;
         }
@@ -75,7 +74,7 @@ function Login({ onLogin, shopUrl }) {
               {isRegister ? 'NOMBRE DEL PERSONAJE' : 'NOMBRE DE DUELISTA'}
             </label>
             <input type="text" placeholder="Tu nombre de usuario" className="neon-input" value={username} onChange={e => setUsername(e.target.value)} required />
-            
+
             {isRegister && (
               <>
                 <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '0.5rem', marginBottom: '0.5rem', marginTop: '1rem', display: 'block', fontWeight: 800 }}>CORREO ELECTRÓNICO</label>
@@ -96,8 +95,8 @@ function Login({ onLogin, shopUrl }) {
 
         <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
           {isRegister ? '¿Ya tienes una cuenta?' : '¿No tienes cuenta?'}
-          <span 
-            onClick={() => { setIsRegister(!isRegister); setError(''); }} 
+          <span
+            onClick={() => { setIsRegister(!isRegister); setError(''); }}
             style={{ color: 'var(--primary)', cursor: 'pointer', marginLeft: '0.5rem', fontWeight: 800, textDecoration: 'underline' }}
           >
             {isRegister ? 'Inicia Sesión' : 'Regístrate aquí'}

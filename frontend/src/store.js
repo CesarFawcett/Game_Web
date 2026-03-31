@@ -9,7 +9,7 @@ const useStore = create((set, get) => ({
   activeDuel: null,
   missions: { dailyWins: 0, weeklyPoints: 0, claimedMissions: [], claimedChests: [], missions: [] },
   seenOnboarding: [],
-  
+
   // Actions
   setMissions: (missions) => set({ missions }),
   setCards: (cards) => set({ cards }),
@@ -19,15 +19,14 @@ const useStore = create((set, get) => ({
   setDeck: (deck) => set({ deck }),
 
   login: (userData) => {
-    // Standardize: ensure we use 'username' correctly and sync with session
-    const normalizedUser = { 
-      ...userData, 
-      username: userData.username || userData.name 
+    const normalizedUser = {
+      ...userData,
+      username: userData.username || userData.name
     };
     set({ user: normalizedUser, deck: normalizedUser.deck || [], seenOnboarding: normalizedUser.seenOnboarding || [] });
     sessionStorage.setItem('authUser', JSON.stringify(normalizedUser));
   },
-  
+
   logout: () => {
     set({ user: null, deck: [], seenOnboarding: [] });
     sessionStorage.removeItem('authUser');
@@ -35,11 +34,10 @@ const useStore = create((set, get) => ({
 
   refreshUserData: async (username, SHOP_URL) => {
     try {
-      // Assuming axios is imported or we use fetch. Let's stick to fetch to avoid axios import issues in store, 
-      // or we can import axios at the top. Let's use fetch:
+
       const res = await fetch(`${SHOP_URL}/user/${username}`);
       const data = await res.json();
-      if(res.ok) {
+      if (res.ok) {
         const freshUser = {
           username: data.username,
           role: data.role,
@@ -103,10 +101,10 @@ const useStore = create((set, get) => ({
       const data = await res.json();
       if (data.success) {
         const updatedUser = { ...user, credits: data.newCredits };
-        
+
         const invIndex = updatedUser.inventory.findIndex(id => String(id) === String(cardId));
         if (invIndex !== -1) updatedUser.inventory.splice(invIndex, 1);
-        
+
         set({ user: updatedUser });
         sessionStorage.setItem('authUser', JSON.stringify(updatedUser));
 
@@ -114,12 +112,12 @@ const useStore = create((set, get) => ({
         const countInDeck = deck.filter(id => String(id) === String(cardId)).length;
 
         if (countInDeck > remainingCopies) {
-            const newDeck = [...deck];
-            const lastIdx = newDeck.lastIndexOf(String(cardId));
-            if (lastIdx !== -1) {
-                newDeck.splice(lastIdx, 1);
-                set({ deck: newDeck });
-            }
+          const newDeck = [...deck];
+          const lastIdx = newDeck.lastIndexOf(String(cardId));
+          if (lastIdx !== -1) {
+            newDeck.splice(lastIdx, 1);
+            set({ deck: newDeck });
+          }
         }
       }
     } catch (err) {
@@ -130,7 +128,7 @@ const useStore = create((set, get) => ({
   addCardToDeck: async (cardId, BASE_URL) => {
     const { user, deck } = get();
     if (!user) return;
-    
+
     const countInInventory = user.inventory.filter(id => String(id) === String(cardId)).length;
     const countInDeck = deck.filter(id => String(id) === String(cardId)).length;
 
@@ -148,7 +146,7 @@ const useStore = create((set, get) => ({
     }
 
     const newDeck = [...deck, String(cardId)];
-    
+
     try {
       const res = await fetch(`${BASE_URL}/api/shop/update-deck`, {
         method: 'POST',
@@ -162,21 +160,21 @@ const useStore = create((set, get) => ({
         const errData = await res.json();
         alert(`Error al actualizar mazo: ${errData.error}`);
       }
-    } catch(e) { 
-        console.error('Error saving deck', e); 
-        alert("Error de conexión al guardar el mazo.");
+    } catch (e) {
+      console.error('Error saving deck', e);
+      alert("Error de conexión al guardar el mazo.");
     }
   },
   removeCardFromDeck: async (cardId, BASE_URL) => {
     const { user, deck } = get();
     if (!user) return;
-    
+
     const idx = deck.lastIndexOf(String(cardId));
     if (idx === -1) return;
 
     const newDeck = [...deck];
     newDeck.splice(idx, 1);
-    
+
     try {
       const res = await fetch(`${BASE_URL}/api/shop/update-deck`, {
         method: 'POST',
@@ -190,9 +188,9 @@ const useStore = create((set, get) => ({
         const errData = await res.json();
         alert(`Error al remover del mazo: ${errData.error}`);
       }
-    } catch(e) { 
-        console.error('Error saving deck', e); 
-        alert("Error de conexión al remover del mazo.");
+    } catch (e) {
+      console.error('Error saving deck', e);
+      alert("Error de conexión al remover del mazo.");
     }
   },
 
@@ -213,7 +211,7 @@ const useStore = create((set, get) => ({
       });
       const data = await res.json();
       if (data.success) {
-        set(s => ({ 
+        set(s => ({
           user: { ...s.user, credits: data.newCredits },
           missions: { ...s.missions, weeklyPoints: data.newPoints, claimedMissions: [...s.missions.claimedMissions, missionId] }
         }));
@@ -232,7 +230,7 @@ const useStore = create((set, get) => ({
       });
       const data = await res.json();
       if (data.success) {
-        set(s => ({ 
+        set(s => ({
           user: { ...s.user, credits: data.newCredits },
           missions: { ...s.missions, claimedChests: data.claimedChests }
         }));

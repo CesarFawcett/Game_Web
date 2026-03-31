@@ -117,7 +117,7 @@ function RankingView({ user, setUser, baseUrl }) {
                                 >
                                     <span className={`rank rank-${idx + 1}`}>{idx + 1}</span>
                                     <div className="player-info">
-                                        <img src={`${baseUrl}${player.equippedAvatar || '/default.png'}`} alt="avatar" />
+                                        <img src={`${player.equippedAvatar && typeof player.equippedAvatar === 'string' && player.equippedAvatar.startsWith('http') ? '' : baseUrl}${player.equippedAvatar || '/default.png'}`} alt="avatar" />
                                         <span className="username">{player.username}</span>
                                     </div>
                                     <span className="points">{player.rankingPoints} pts</span>

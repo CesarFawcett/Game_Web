@@ -10,7 +10,8 @@ const FieldSlot = ({ side, index, baseUrl }) => {
   const prefix = store.getPOVPrefix(side); // 'p1' or 'p2'
   const myPrefix = store.getPOVPrefix('player');
   const field = store[prefix + 'Field'];
-  const card = field[index];
+  const cardBase = field[index];
+  const card = cardBase ? store.getEffectiveStats(cardBase, prefix === 'p1' ? 'player1' : 'player2') : null;
   const myHand = store[myPrefix + 'Hand'];
 
   const isBATTLE = store.phase === 'BATTLE';

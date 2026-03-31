@@ -212,9 +212,22 @@ const useMatchStore = create((set, get) => ({
       console.log(`[useMatchStore] First player of the game identified: ${role}`);
     }
 
+    // Trap Bonuses for poison calculation
+    const oppTraps = s[oppPrefix + 'Traps'] || [];
+    const oppTrapBonusAtk = oppTraps.reduce((acc, t) => acc + (Number(t.attack) || 0), 0);
+
     // Effects
-    const totalPoison = s[oppPrefix + 'Field'].reduce((acc, c) => acc + (c?.ability === 'Veneno' ? Math.floor(c.attack * 0.2) : 0), 0);
-    const totalPutrefaction = s[oppPrefix + 'Field'].reduce((acc, c) => acc + (c?.ability === 'Putrefacción' ? Math.floor(c.attack * 0.3) : 0), 0);
+    const totalPoison = s[oppPrefix + 'Field'].reduce((acc, c) => {
+      if (!c) return acc;
+      const effectiveAtk = c.attack + oppTrapBonusAtk;
+      return acc + (c?.ability === 'Veneno' ? Math.floor(effectiveAtk * 0.2) : 0);
+    }, 0);
+
+    const totalPutrefaction = s[oppPrefix + 'Field'].reduce((acc, c) => {
+      if (!c) return acc;
+      const effectiveAtk = c.attack + oppTrapBonusAtk;
+      return acc + (c?.ability === 'Putrefacción' ? Math.floor(effectiveAtk * 0.3) : 0);
+    }, 0);
 
     if (totalPoison > 0) {
       set(prev => ({
@@ -349,6 +362,24 @@ const useMatchStore = create((set, get) => ({
     get().emitAction('PLACE_CARD', { slotIdx, card });
   },
 
+  activateTrap: (handIdx) => {
+    const s = get();
+    if (s.turn !== s.myRole || s.winner || (s.phase !== 'MAIN 1' && s.phase !== 'MAIN 2')) return;
+    const prefix = s.myRole === 'player1' ? 'p1' : 'p2';
+    const card = s[prefix + 'Hand'][handIdx];
+    if (!card || card.type !== 'Trap') return;
+    if (s[prefix + 'Traps'].length >= 3) return get().addLog("Zona de trampas llena.");
+
+    playSound('place');
+    set(prev => ({
+      [prefix + 'Traps']: [...prev[prefix + 'Traps'], card],
+      [prefix + 'Hand']: prev[prefix + 'Hand'].filter((_, i) => i !== handIdx),
+      selectedHandIdx: null
+    }));
+    get().emitAction('ACTIVATE_TRAP', { card });
+    get().addLog(`Has activado una carta de Trampa.`);
+  },
+
   handleCardClick: (i, role) => {
     const s = get();
     if (s.turn !== s.myRole || s.winner || s.isProcessing || s.splashText) return;
@@ -396,13 +427,27 @@ const useMatchStore = create((set, get) => ({
     playSound('impact');
 
     const state = get();
-    const attacker = state[aPrefix + 'Field'][attackerIdx];
-    const target = targetIdx === -1 ? null : state[dPrefix + 'Field'][targetIdx];
+    const aField = state[aPrefix + 'Field'];
+    const dField = state[dPrefix + 'Field'];
+    const aTraps = state[aPrefix + 'Traps'];
+    const dTraps = state[dPrefix + 'Traps'];
+
+    // Trap Bonuses
+    const trapAtkBonus = aTraps.reduce((acc, t) => acc + (Number(t.attack) || 0), 0);
+    const trapDefBonus = dTraps.reduce((acc, t) => acc + (Number(t.defense) || 0), 0);
+
+    const attackerBase = aField[attackerIdx];
+    if (!attackerBase) {
+      set({ isProcessing: false, attackingIdx: null, selectedAttackerIdx: null, defendingIdx: null });
+      return;
+    }
+    const attacker = { ...attackerBase, attack: attackerBase.attack + trapAtkBonus };
+    const targetBase = targetIdx === -1 ? null : dField[targetIdx];
+    const target = targetBase ? { ...targetBase, defense: targetBase.defense + trapDefBonus } : null;
 
     if (!isRemote) get().emitAction('EXECUTE_ATTACK', { attackerIdx, targetIdx });
 
     if (!target) {
-      const dField = s[dPrefix + 'Field'];
       if (dField.every(slot => slot)) {
         get().addLog("¡No puedes atacar directo si el campo está lleno!");
         set({ isProcessing: false, attackingIdx: null, selectedAttackerIdx: null, defendingIdx: null });
@@ -419,6 +464,7 @@ const useMatchStore = create((set, get) => ({
           [aPrefix + 'Field']: nextF
         };
       });
+      get().addLog(`${attackerRole === 'player1' ? 'P1' : 'P2'} ataca directo con ${attacker.name} infligiendo ${attacker.attack} daño.`);
     } else {
       const damage = attacker.attack;
 
@@ -437,12 +483,18 @@ const useMatchStore = create((set, get) => ({
           let splashCount = 0;
           [targetIdx - 1, targetIdx + 1].forEach(idx => {
             if (idx >= 0 && idx < 3 && nextF[idx]) {
-              nextF[idx] = { ...nextF[idx], defense: nextF[idx].defense - splash };
-              splashCount++;
-              if (nextF[idx].defense <= 0) {
-                set({ [dPrefix + 'Graveyard']: [...get()[dPrefix + 'Graveyard'], nextF[idx]] });
+              const currentT = nextF[idx];
+              // Note: splash target also gets its own owner's trap bonus? Usually splash is direct damage to def.
+              const currentTDef = currentT.defense + trapDefBonus; 
+              const newDef = currentTDef - splash;
+              
+              if (newDef <= 0) {
+                set({ [dPrefix + 'Graveyard']: [...get()[dPrefix + 'Graveyard'], currentT] });
                 nextF[idx] = null;
+              } else {
+                nextF[idx] = { ...currentT, defense: newDef - trapDefBonus }; // Preserve base defense
               }
+              splashCount++;
             }
           });
           if (splashCount > 0) get().addLog(`¡Fuego inflige ${splash} daño splash a los vecinos!`);
@@ -450,47 +502,70 @@ const useMatchStore = create((set, get) => ({
         });
       }
 
+      // Target Combat
       set(prev => {
         const nextF = [...prev[dPrefix + 'Field']];
         if (!nextF[targetIdx]) return {};
         const nextT = { ...nextF[targetIdx] };
-        nextT.defense -= damage;
-        if (nextT.defense <= 0) {
-          set({ [dPrefix + 'Graveyard']: [...get()[dPrefix + 'Graveyard'], target] });
+        const effectiveTDef = nextT.defense + trapDefBonus;
+        const newEffectiveDef = effectiveTDef - damage;
+        
+        if (newEffectiveDef <= 0) {
+          set({ [dPrefix + 'Graveyard']: [...get()[dPrefix + 'Graveyard'], targetBase] });
           nextF[targetIdx] = null;
-        } else { nextF[targetIdx] = nextT; }
+        } else {
+          nextT.defense = newEffectiveDef - trapDefBonus; // Restore base
+          nextF[targetIdx] = nextT;
+        }
         return { [dPrefix + 'Field']: nextF };
       });
 
-      set(prev => {
-        const nextF = [...prev[aPrefix + 'Field']];
-        if (!nextF[attackerIdx]) return {};
-        let nextA = { ...nextF[attackerIdx] };
+      // Attacker Combat
+      if (target.defense > 0) {
+        set(prev => {
+          const nextF = [...prev[aPrefix + 'Field']];
+          if (!nextF[attackerIdx]) return {};
+          let nextA = { ...nextF[attackerIdx] };
 
-        // --- Habilidad: Robo de Vida ---
-        if (nextA.ability === 'Robo de Vida') {
-          const boost = Math.floor(nextA.attack * 0.2);
-          nextA.attack += boost;
-          nextA.defense += boost;
-          get().addLog(`¡Robo de Vida aumenta ATK/DEF de ${nextA.name} en ${boost}!`);
-        }
+          // --- Habilidad: Robo de Vida ---
+          if (nextA.ability === 'Robo de Vida') {
+            const boost = Math.floor((nextA.attack + trapAtkBonus) * 0.2);
+            nextA.attack += boost;
+            nextA.defense += boost;
+            get().addLog(`¡Robo de Vida aumenta ATK/DEF de ${nextA.name} en ${boost}!`);
+          }
 
-        nextA.attack = Math.max(0, nextA.attack - target.defense);
-        nextA.attacksThisTurn += 1;
+          const effectiveAAtk = nextA.attack + trapAtkBonus;
+          const newEffectiveAtk = Math.max(0, effectiveAAtk - target.defense);
+          
+          nextA.attacksThisTurn += 1;
 
-        if (target.ability === 'Hielo') {
-          nextA.frozen = 3;
-          get().addLog(`¡${attacker.name} ha sido congelado por el Hielo de ${target.name}!`);
-        }
+          if (target.ability === 'Hielo') {
+            nextA.frozen = 3;
+            get().addLog(`¡${attacker.name} ha sido congelado por el Hielo de ${target.name}!`);
+          }
 
-        if (nextA.attack <= 0 && target.defense > 0) {
-          set({ [aPrefix + 'Graveyard']: [...get()[aPrefix + 'Graveyard'], nextA] });
-          nextF[attackerIdx] = null;
-        } else { nextF[attackerIdx] = nextA; }
-        return { [aPrefix + 'Field']: nextF };
-      });
+          if (newEffectiveAtk <= 0 && target.defense > 0) {
+            set({ [aPrefix + 'Graveyard']: [...get()[aPrefix + 'Graveyard'], attackerBase] });
+            nextF[attackerIdx] = null;
+          } else {
+            nextA.attack = Math.max(0, newEffectiveAtk - trapAtkBonus); // Restore base
+            nextF[attackerIdx] = nextA;
+          }
+          return { [aPrefix + 'Field']: nextF };
+        });
+      } else {
+         // Attacker simply attacked successfully
+         set(prev => {
+            const nextF = [...prev[aPrefix + 'Field']];
+            if (nextF[attackerIdx]) {
+              nextF[attackerIdx] = { ...nextF[attackerIdx], attacksThisTurn: (nextF[attackerIdx].attacksThisTurn || 0) + 1 };
+            }
+            return { [aPrefix + 'Field']: nextF };
+         });
+      }
 
-      if (attacker.ability === 'Hielo') {
+      if (attacker.ability === 'Hielo' && get()[dPrefix + 'Field'][targetIdx]) {
         set(prev => {
           const nextF = [...prev[dPrefix + 'Field']];
           if (nextF[targetIdx]) {
@@ -529,6 +604,9 @@ const useMatchStore = create((set, get) => ({
         nextF[payload.slotIdx] = payload.card;
         return { [oppPrefix + 'Field']: nextF };
       });
+    } else if (type === 'ACTIVATE_TRAP') {
+      set(p => ({ [oppPrefix + 'Traps']: [...p[oppPrefix + 'Traps'], payload.card] }));
+      get().addLog(`Oponente ha activado una carta de Trampa.`);
     } else if (type === 'END_TURN') {
       const nextRole = s.myRole;
       set(prev => ({
@@ -631,6 +709,20 @@ const useMatchStore = create((set, get) => ({
 
     await new Promise(r => setTimeout(r, 500));
     get().endTurn();
+  },
+
+  getEffectiveStats: (card, role) => {
+    if (!card) return null;
+    const s = get();
+    const prefix = role === 'player1' ? 'p1' : 'p2';
+    const traps = s[prefix + 'Traps'] || [];
+    const trapAtkBonus = traps.reduce((acc, t) => acc + (Number(t.attack) || 0), 0);
+    const trapDefBonus = traps.reduce((acc, t) => acc + (Number(t.defense) || 0), 0);
+    return {
+      ...card,
+      attack: (Number(card.attack) || 0) + trapAtkBonus,
+      defense: (Number(card.defense) || 0) + trapDefBonus
+    };
   },
 
   resetMatch: () => {

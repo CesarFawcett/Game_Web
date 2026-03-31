@@ -25,7 +25,8 @@ router.post('/register', async (req, res) => {
       username,
       email,
       password, // Plain text as requested
-      credits: 6000
+      credits: 2500,
+      freePacksCount: 4
     });
 
     await newUser.save();
@@ -47,7 +48,8 @@ router.post('/register', async (req, res) => {
         unlockedEnemyAvatars: [],
         defeatedEnemies: [],
         seenOnboarding: [],
-        duelsUnlocked: false
+        duelsUnlocked: false,
+        freePacksCount: 4
       }
     });
   } catch (err) {
@@ -140,7 +142,8 @@ router.post('/login', async (req, res) => {
         rankingPoints: user.rankingPoints || 0,
         connectionStreak: user.connectionStreak || 1,
         lastRankingRewardClaimed: user.lastRankingRewardClaimed,
-        canClaimStreakReward: (user.connectionStreak % 5 === 0 && (!user.lastStreakRewardClaimedAt || new Date(user.lastStreakRewardClaimedAt) < today))
+        canClaimStreakReward: (user.connectionStreak % 5 === 0 && (!user.lastStreakRewardClaimedAt || new Date(user.lastStreakRewardClaimedAt) < today)),
+        freePacksCount: user.freePacksCount || 0
       }
     });
   } catch (err) {
@@ -170,7 +173,8 @@ router.get('/user/:username', async (req, res) => {
       unlockedEnemyAvatars: user.unlockedEnemyAvatars || [],
       defeatedEnemies: user.defeatedEnemies || [],
       seenOnboarding: user.seenOnboarding || [],
-      duelsUnlocked: user.duelsUnlocked || false
+      duelsUnlocked: user.duelsUnlocked || false,
+      freePacksCount: user.freePacksCount || 0
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -248,6 +252,69 @@ router.post('/purchase', async (req, res) => {
       success: true,
       rewardCards,
       newCredits: user.credits
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /claim-free-pack - Open 1 of the free welcome packs
+router.post('/claim-free-pack', async (req, res) => {
+  try {
+    const { username } = req.body;
+    let user = await User.findOne({ username });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    if (!user.freePacksCount || user.freePacksCount <= 0) {
+      return res.status(400).json({ error: 'No tienes sobres gratuitos disponibles' });
+    }
+
+    // Find pack with packId: 1 (or the first available one as fallback)
+    let pack = await Pack.findOne({ packId: 1 }).populate('cardPool.cardId');
+    if (!pack) {
+      pack = await Pack.findOne({ enabled: true }).sort({ createdAt: 1 }).populate('cardPool.cardId');
+    }
+
+    if (!pack) {
+      return res.status(400).json({ error: 'No hay sobres disponibles en el sistema' });
+    }
+
+    const rewardCards = [];
+    const pool = pack.cardPool;
+    if (pool.length === 0) return res.status(400).json({ error: 'El sobre está vacío' });
+
+    const drawCard = () => {
+      const rand = Math.random() * 100;
+      let cumulative = 0;
+      for (let item of pool) {
+        cumulative += item.dropRate;
+        if (rand <= cumulative) return item.cardId;
+      }
+      return pool[pool.length - 1].cardId;
+    };
+
+    for (let i = 0; i < pack.cardsPerPack; i++) {
+        const pulledCard = drawCard();
+        rewardCards.push(pulledCard);
+        user.inventory.push(pulledCard._id);
+        user.discoveredCards.addToSet(pulledCard._id);
+    }
+
+    user.freePacksCount -= 1;
+
+    await User.findOneAndUpdate(
+      { username }, 
+      { 
+        freePacksCount: user.freePacksCount, 
+        inventory: user.inventory, 
+        discoveredCards: user.discoveredCards 
+      }
+    );
+
+    res.json({
+      success: true,
+      rewardCards,
+      freePacksCount: user.freePacksCount
     });
   } catch (err) {
     res.status(500).json({ error: err.message });

@@ -220,11 +220,16 @@ router.delete('/boards/:id', async (req, res) => {
 // Create Pack
 router.post('/packs', upload.single('image'), async (req, res) => {
   try {
-    const { name, price, cardsPerPack, cardPool, enabled, imageString } = req.body;
+    const { name, price, cardsPerPack, cardPool, enabled, imageString, packId } = req.body;
     const imageUrl = imageString ? imageString : (req.file ? `/uploads/${req.file.filename}` : '/uploads/default_pack.png');
     const parsedPool = cardPool ? JSON.parse(cardPool) : [];
     
-    const newPack = new Pack({ name, price, cardsPerPack, cardPool: parsedPool, enabled: enabled === 'true' || enabled === true, imageUrl });
+    const newPack = new Pack({ 
+      name, price, cardsPerPack, packId,
+      cardPool: parsedPool, 
+      enabled: enabled === 'true' || enabled === true, 
+      imageUrl 
+    });
     await newPack.save();
     res.status(201).json(newPack);
   } catch (err) {
@@ -235,11 +240,12 @@ router.post('/packs', upload.single('image'), async (req, res) => {
 // Update Pack
 router.put('/packs/:id', upload.single('image'), async (req, res) => {
   try {
-    const { name, price, cardsPerPack, cardPool, enabled, imageString } = req.body;
+    const { name, price, cardsPerPack, cardPool, enabled, imageString, packId } = req.body;
     const updateData = {};
     if (name) updateData.name = name;
     if (price) updateData.price = price;
     if (cardsPerPack) updateData.cardsPerPack = cardsPerPack;
+    if (packId !== undefined) updateData.packId = packId;
     if (cardPool) updateData.cardPool = JSON.parse(cardPool);
     if (enabled !== undefined) updateData.enabled = (enabled === 'true' || enabled === true);
     

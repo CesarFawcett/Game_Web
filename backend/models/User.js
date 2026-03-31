@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: false, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['admin', 'player'], default: 'player' },
-  credits: { type: Number, default: 6000 },
+  credits: { type: Number, default: 2500 },
   inventory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
   discoveredCards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
   deck: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
@@ -35,6 +35,7 @@ const UserSchema = new mongoose.Schema({
   lastRankingRewardClaimed: { type: Date, default: null },
   lastStreakRewardClaimedAt: { type: Date, default: null },
   seasonRewardClaimed: { type: Boolean, default: false },
+  freePacksCount: { type: Number, default: 0 },
 });
 
 module.exports = mongoose.model('User', UserSchema);

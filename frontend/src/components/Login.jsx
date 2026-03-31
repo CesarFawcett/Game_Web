@@ -25,7 +25,7 @@ function Login({ onLogin, shopUrl }) {
         const userData = {
           name: res.data.user.username,
           role: res.data.user.role,
-          credits: res.data.user.credits || 6000,
+          credits: res.data.user.credits || 2500,
           inventory: res.data.user.inventory || [],
           discoveredCards: res.data.user.discoveredCards || [],
           deck: res.data.user.deck || [],

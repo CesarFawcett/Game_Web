@@ -201,6 +201,7 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
     formData.append('cardsPerPack', selectedPack.cardsPerPack || 3);
     formData.append('enabled', selectedPack.enabled);
     formData.append('cardPool', JSON.stringify(selectedPack.cardPool || []));
+    formData.append('packId', selectedPack.packId || 0);
 
     if (packFile) formData.append('image', packFile);
     if (selectedPack.imageString) formData.append('imageString', selectedPack.imageString);
@@ -752,14 +753,14 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
               <div className="glass-panel admin-list-section">
                 <div style={{ padding: '1.5rem', borderBottom: '1px solid var(--glass-border)', display: 'flex', justifyContent: 'space-between' }}>
                   <h3>LISTA DE SOBRES</h3>
-                  <button className="arcade-btn" onClick={() => setSelectedPack({ name: '', price: 250, cardsPerPack: 3, enabled: true, cardPool: [] })}>+ NUEVO</button>
+                  <button className="arcade-btn" onClick={() => setSelectedPack({ name: '', price: 250, cardsPerPack: 3, packId: 0, enabled: true, cardPool: [] })}>+ NUEVO</button>
                 </div>
                 <div className="enemy-admin-list scrollbar">
                   {packs.map(p => (
                     <div key={p._id} className={`enemy-item-admin ${selectedPack?._id === p._id ? 'active' : ''}`} onClick={() => setSelectedPack(p)}>
                       <div style={{ width: '40px', height: '60px', background: p.imageUrl ? `url(${p.imageUrl && typeof p.imageUrl === 'string' && p.imageUrl.startsWith('http') ? '' : baseUrl}${p.imageUrl}) center/cover` : '#000', borderRadius: '4px' }}></div>
                       <div className="enemy-item-details">
-                        <p className="e-name">{p.name}</p>
+                        <p className="e-name">#{p.packId || '?' } - {p.name}</p>
                         <p className="e-meta">{p.price} 🪙 • {p.cardsPerPack} Cartas</p>
                       </div>
                       <span className={`status-pill ${p.enabled ? 'active' : ''}`}>{p.enabled ? 'ON' : 'OFF'}</span>
@@ -782,9 +783,15 @@ function AdminPanel({ onUpdate, cards, apiUrl, baseUrl }) {
                   <form onSubmit={handlePackSubmit} className="admin-form extended">
                     <div className="form-sections-grid">
                       <div className="basic-info-section">
-                        <div className="field-group">
-                          <label>NOMBRE DEL SOBRE</label>
-                          <input type="text" value={selectedPack.name} onChange={e => setSelectedPack({ ...selectedPack, name: e.target.value })} placeholder="Ej: Sobre Épico del Caos" required />
+                        <div className="stats-row">
+                          <div className="field-group">
+                            <label>NOMBRE DEL SOBRE</label>
+                            <input type="text" value={selectedPack.name} onChange={e => setSelectedPack({ ...selectedPack, name: e.target.value })} placeholder="Ej: Sobre Épico del Caos" required />
+                          </div>
+                          <div className="field-group" style={{ maxWidth: '100px' }}>
+                            <label>ID SOBRE</label>
+                            <input type="number" value={selectedPack.packId} onChange={e => setSelectedPack({ ...selectedPack, packId: Number(e.target.value) })} placeholder="ID" />
+                          </div>
                         </div>
                         <div className="stats-row">
                           <div className="field-group">

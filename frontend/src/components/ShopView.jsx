@@ -41,6 +41,39 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl }) {
     } catch (err) { console.error(err); }
   };
 
+  const handleClaimFreePack = async () => {
+    if (!user.freePacksCount || user.freePacksCount <= 0) return;
+
+    setLoading(true);
+    setOpeningPackId('free');
+    try {
+      const res = await axios.post(`${baseUrl}/api/shop/claim-free-pack`, { username: user.username });
+      
+      if (res.data.success) {
+        setIsOpening(true);
+        playSound('open');
+        setTimeout(() => {
+          setReward(res.data.rewardCards);
+          setIsOpening(false);
+          setOpeningPackId(null);
+          const updatedUser = { 
+            ...user, 
+            freePacksCount: res.data.freePacksCount,
+            inventory: [...(user.inventory || []), ...res.data.rewardCards.map(c => c._id)],
+            discoveredCards: [...new Set([...(user.discoveredCards || []), ...res.data.rewardCards.map(c => c._id)])]
+          };
+          setUser(updatedUser);
+          sessionStorage.setItem('authUser', JSON.stringify(updatedUser));
+          onUpdate();
+        }, 2000);
+      }
+    } catch (err) {
+      alert(err.response?.data?.error || "Error al reclamar el sobre");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handlePurchase = async (packId, price) => {
     if (user.credits < price) {
       alert("¡No tienes suficientes créditos!");
@@ -176,6 +209,27 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl }) {
         <p style={{ color: 'var(--text-muted)' }}>Adquiere nuevos poderes para dominar el multiverso</p>
       </div>
 
+      {user.freePacksCount > 0 && (
+        <div style={{ marginBottom: '4rem', padding: '2rem', background: 'rgba(212, 175, 55, 0.05)', borderRadius: '20px', border: '1px solid var(--accent-gold)', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(circle at center, rgba(212, 175, 55, 0.1) 0%, transparent 70%)', pointerEvents: 'none' }}></div>
+          <h2 style={{ fontSize: '2rem', fontWeight: 900, color: 'var(--accent-gold)', marginBottom: '0.5rem', textShadow: '0 0 10px rgba(212,175,55,0.3)' }}>🎁 REGALO DE BIENVENIDA</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: '2rem' }}>¡Te quedan <strong>{user.freePacksCount}</strong> sobres gratuitos!</p>
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+             <ChestCard 
+                title="SOBRE DE INICIO"
+                price={0}
+                description="Contiene cartas básicas para empezar tu mazo."
+                imageUrl={packs.find(p => p.packId === 1)?.imageUrl || "/uploads/default_pack.png"}
+                onPurchase={handleClaimFreePack}
+                loading={loading || isOpening}
+                userCredits={999999}
+                isOpening={isOpening && openingPackId === 'free'}
+                baseUrl={baseUrl}
+             />
+          </div>
+        </div>
+      )}
+
       <div className="chests-grid">
         {packs.length === 0 ? (
            <p style={{ color: 'var(--text-muted)', gridColumn: '1 / -1', textAlign: 'center' }}>No hay sobres disponibles en la tienda en este momento.</p>
@@ -304,9 +358,14 @@ function ChestCard({ title, price, description, onPurchase, loading, userCredits
             className="arcade-btn" 
             onClick={onPurchase}
             disabled={loading}
-            style={{ margin: 0, background: userCredits >= price ? 'var(--primary)' : 'rgba(239, 68, 68, 0.1)' }}
+            style={{ 
+              margin: 0, 
+              background: price === 0 ? 'var(--accent-gold)' : (userCredits >= price ? 'var(--primary)' : 'rgba(239, 68, 68, 0.1)'),
+              color: price === 0 ? 'black' : 'white',
+              fontWeight: price === 0 ? 900 : 700
+            }}
           >
-            {loading ? 'ABRIENDO...' : `${price} 🪙`}
+            {loading ? 'ABRIENDO...' : (price === 0 ? 'ABRIR GRATIS' : `${price} 🪙`)}
           </button>
         )}
       </div>

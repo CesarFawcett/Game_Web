@@ -31,6 +31,11 @@ const packSchema = new mongoose.Schema({
   enabled: { 
     type: Boolean, 
     default: true 
+  },
+  packId: { 
+    type: Number, 
+    unique: true, 
+    required: false
   }
 }, { timestamps: true });
 

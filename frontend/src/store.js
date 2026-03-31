@@ -57,7 +57,8 @@ const useStore = create((set, get) => ({
           unlockedEnemyAvatars: data.unlockedEnemyAvatars || [],
           defeatedEnemies: data.defeatedEnemies || [],
           seenOnboarding: data.seenOnboarding || [],
-          duelsUnlocked: data.duelsUnlocked || false
+          duelsUnlocked: data.duelsUnlocked || false,
+          freePacksCount: data.freePacksCount || 0
         };
         set({ user: freshUser, deck: data.deck || [], seenOnboarding: data.seenOnboarding || [] });
         sessionStorage.setItem('authUser', JSON.stringify(freshUser));

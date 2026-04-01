@@ -132,7 +132,8 @@ const useMatchStore = create((set, get) => ({
       p1Graveyard: [], p2Graveyard: [],
       isProcessing: false,
       placedThisTurn: 0,
-      revealTimer: 0, rpsPhase: false
+      revealTimer: 0, rpsPhase: false,
+      firstTurnRole: null
     });
 
     setTimeout(() => set({ splashText: null }), 1500);
@@ -191,7 +192,8 @@ const useMatchStore = create((set, get) => ({
       log: ['¡Buscando determinar quién empieza!'],
       winner: null,
       splashText: '¡Buscando determinar quién empieza!',
-      isProcessing: false
+      isProcessing: false,
+      firstTurnRole: null
     });
 
     console.log(`[initPvPGame] Hand set for ${isP1 ? 'p1' : 'p2'}:`, shuffled.slice(0, 3).length, "cards.");
@@ -739,7 +741,8 @@ const useMatchStore = create((set, get) => ({
       defendingIdx: null,
       placedThisTurn: 0,
       turnCount: 1,
-      turn: 'player1'
+      turn: 'player1',
+      firstTurnRole: null
     });
   }
 }));

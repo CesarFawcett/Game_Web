@@ -22,8 +22,8 @@ const storage = multer.diskStorage({
 const fileFilter = (req, file, cb) => {
   // Aceptar PNG y JPEG
   if (
-     (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg') && 
-     (path.extname(file.originalname).toLowerCase() === '.png' || path.extname(file.originalname).toLowerCase() === '.jpeg' || path.extname(file.originalname).toLowerCase() === '.jpg')
+    (file.mimetype === 'image/png' || file.mimetype === 'image/jpeg' || file.mimetype === 'image/jpg') &&
+    (path.extname(file.originalname).toLowerCase() === '.png' || path.extname(file.originalname).toLowerCase() === '.jpeg' || path.extname(file.originalname).toLowerCase() === '.jpg')
   ) {
     cb(null, true);
   } else {
@@ -31,7 +31,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
+const upload = multer({
   storage,
   fileFilter,
   limits: { fileSize: 20 * 1024 * 1024 } // 20MB limit for high-res boards
@@ -63,7 +63,7 @@ router.post('/cards', upload.fields([{ name: 'image', maxCount: 1 }, { name: 'ca
   try {
     const { name, type, description, attack, defense, ability, rarity, existingCardBack, imageUrlString, cardBackImageString } = req.body;
     let imageUrl = imageUrlString ? imageUrlString : (req.files && req.files['image'] ? `/uploads/${req.files['image'][0].filename}` : '');
-    
+
     let cardBackImageUrl = '';
     if (cardBackImageString) {
       cardBackImageUrl = cardBackImageString;
@@ -86,13 +86,13 @@ router.put('/cards/:id', upload.fields([{ name: 'image', maxCount: 1 }, { name: 
   try {
     const { name, type, description, attack, defense, ability, rarity, existingCardBack, imageUrlString, cardBackImageString } = req.body;
     const updateData = { name, type, description, attack, defense, ability, rarity };
-    
+
     if (imageUrlString) {
       updateData.imageUrl = imageUrlString;
     } else if (req.files && req.files['image']) {
       updateData.imageUrl = `/uploads/${req.files['image'][0].filename}`;
     }
-    
+
     if (cardBackImageString) {
       updateData.cardBackImageUrl = cardBackImageString;
     } else if (req.files && req.files['cardBackImage']) {
@@ -143,11 +143,11 @@ router.post('/boards', upload.fields([
     const textureUrl = textureImageString ? textureImageString : (req.files && req.files['textureImage'] ? `/uploads/${req.files['textureImage'][0].filename}` : '');
     const cardBackUrl = cardBackImageString ? cardBackImageString : (req.files && req.files['cardBackImage'] ? `/uploads/${req.files['cardBackImage'][0].filename}` : '');
     const avatarUrl = avatarImageString ? avatarImageString : (req.files && req.files['avatarImage'] ? `/uploads/${req.files['avatarImage'][0].filename}` : '');
-    
-    const newBoard = new Board({ 
-      name, price, 
-      enabled: enabled === 'true' || enabled === true, 
-      imageUrl, fieldImageUrl, textureUrl, cardBackUrl, avatarUrl 
+
+    const newBoard = new Board({
+      name, price,
+      enabled: enabled === 'true' || enabled === true,
+      imageUrl, fieldImageUrl, textureUrl, cardBackUrl, avatarUrl
     });
     await newBoard.save();
     res.status(201).json(newBoard);
@@ -171,22 +171,22 @@ router.put('/boards/:id', upload.fields([
     if (name) updateData.name = name;
     if (price !== undefined) updateData.price = price;
     if (enabled !== undefined) updateData.enabled = (enabled === 'true' || enabled === true);
-    
+
     if (imageString) updateData.imageUrl = imageString;
     else if (req.files && req.files['image']) updateData.imageUrl = `/uploads/${req.files['image'][0].filename}`;
-    
+
     if (fieldImageString) updateData.fieldImageUrl = fieldImageString;
     else if (req.files && req.files['fieldImage']) updateData.fieldImageUrl = `/uploads/${req.files['fieldImage'][0].filename}`;
-    
+
     if (textureImageString) updateData.textureUrl = textureImageString;
     else if (req.files && req.files['textureImage']) updateData.textureUrl = `/uploads/${req.files['textureImage'][0].filename}`;
-    
+
     if (cardBackImageString) updateData.cardBackUrl = cardBackImageString;
     else if (req.files && req.files['cardBackImage']) updateData.cardBackUrl = `/uploads/${req.files['cardBackImage'][0].filename}`;
 
     if (avatarImageString) updateData.avatarUrl = avatarImageString;
     else if (req.files && req.files['avatarImage']) updateData.avatarUrl = `/uploads/${req.files['avatarImage'][0].filename}`;
-    
+
     const board = await Board.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(board);
   } catch (err) {
@@ -223,12 +223,12 @@ router.post('/packs', upload.single('image'), async (req, res) => {
     const { name, price, cardsPerPack, cardPool, enabled, imageString, packId } = req.body;
     const imageUrl = imageString ? imageString : (req.file ? `/uploads/${req.file.filename}` : '/uploads/default_pack.png');
     const parsedPool = cardPool ? JSON.parse(cardPool) : [];
-    
-    const newPack = new Pack({ 
+
+    const newPack = new Pack({
       name, price, cardsPerPack, packId,
-      cardPool: parsedPool, 
-      enabled: enabled === 'true' || enabled === true, 
-      imageUrl 
+      cardPool: parsedPool,
+      enabled: enabled === 'true' || enabled === true,
+      imageUrl
     });
     await newPack.save();
     res.status(201).json(newPack);
@@ -248,10 +248,10 @@ router.put('/packs/:id', upload.single('image'), async (req, res) => {
     if (packId !== undefined) updateData.packId = packId;
     if (cardPool) updateData.cardPool = JSON.parse(cardPool);
     if (enabled !== undefined) updateData.enabled = (enabled === 'true' || enabled === true);
-    
+
     if (imageString) updateData.imageUrl = imageString;
     else if (req.file) updateData.imageUrl = `/uploads/${req.file.filename}`;
-    
+
     const pack = await Pack.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(pack);
   } catch (err) {
@@ -282,8 +282,8 @@ router.delete('/packs/:id', async (req, res) => {
 // --- AVATAR ROUTES ---
 
 // Create Avatar
-router.post('/avatars', function(req, res, next) {
-  upload.single('image')(req, res, function(err) {
+router.post('/avatars', function (req, res, next) {
+  upload.single('image')(req, res, function (err) {
     if (err) return res.status(400).json({ error: err.message });
     next();
   });
@@ -308,10 +308,10 @@ router.put('/avatars/:id', upload.single('image'), async (req, res) => {
     if (name) updateData.name = name;
     if (price !== undefined) updateData.price = price;
     if (enabled !== undefined) updateData.enabled = (enabled === 'true' || enabled === true);
-    
+
     if (imageString) updateData.imageUrl = imageString;
     else if (req.file) updateData.imageUrl = `/uploads/${req.file.filename}`;
-    
+
     const avatar = await Avatar.findByIdAndUpdate(req.params.id, updateData, { new: true });
     res.json(avatar);
   } catch (err) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 import logoG from '../utils/img/IconoG.png';
@@ -8,8 +8,20 @@ function Login({ onLogin, shopUrl }) {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // LOAD REMEMBERED DATA
+  useEffect(() => {
+    const savedUsername = localStorage.getItem('rememberedUsername');
+    const savedPassword = localStorage.getItem('rememberedPassword');
+    if (savedUsername && savedPassword) {
+      setUsername(savedUsername);
+      setPassword(savedPassword);
+      setRememberMe(true);
+    }
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,6 +34,15 @@ function Login({ onLogin, shopUrl }) {
       const res = await axios.post(`${shopUrl}/${endpoint}`, payload);
 
       if (res.data.success) {
+        // SAVE OR CLEAR FROM LOCALSTORAGE
+        if (rememberMe) {
+          localStorage.setItem('rememberedUsername', username);
+          localStorage.setItem('rememberedPassword', password);
+        } else {
+          localStorage.removeItem('rememberedUsername');
+          localStorage.removeItem('rememberedPassword');
+        }
+
         const userData = {
           name: res.data.user.username,
           role: res.data.user.role,
@@ -50,71 +71,97 @@ function Login({ onLogin, shopUrl }) {
   };
 
   return (
-    <div className="arcade-container">
-      <div className="arcade-overlay"></div>
+    <div className="arcade-container full-bg">
+      <div className="arcade-overlay dark-cinematic"></div>
       <div className="scanline"></div>
 
       <motion.div
-        className="arcade-card"
-        initial={{ y: 50, opacity: 0 }}
+        className="login-pedestal"
+        initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, ease: "easeOut" }}
+        transition={{ duration: 1, ease: "circOut" }}
       >
-        <div style={{ marginBottom: '2rem' }}>
-          <h2 className="arcade-title">CARD BATTLE</h2>
-          <div style={{ height: '2px', background: 'linear-gradient(90deg, transparent, var(--primary), transparent)', margin: '1rem 0' }}></div>
-          <p style={{ color: 'var(--text-muted)', letterSpacing: '3px', fontSize: '0.8rem', fontWeight: 600 }}>
-            {isRegister ? 'JOIN THE MULTIVERSE' : 'ENTER THE MULTIVERSE'}
-          </p>
+        <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+          <h1 className="main-logo-text">CARD BATTLE UNIVERSE</h1>
         </div>
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ textAlign: 'left', marginBottom: '1.5rem' }}>
-            <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '0.5rem', marginBottom: '0.5rem', display: 'block', fontWeight: 800 }}>
-              {isRegister ? 'NOMBRE DEL PERSONAJE' : 'NOMBRE DE DUELISTA'}
-            </label>
-            <input type="text" placeholder="Tu nombre de usuario" className="neon-input" value={username} onChange={e => setUsername(e.target.value)} required />
+        <div className="login-dual-zone">
+          <div className="zone-indicator light">LIGHT ZONE</div>
+          <div className="zone-indicator dark">DARK ZONE</div>
+          
+          <form className="login-core-form" onSubmit={handleSubmit}>
+            <div className="input-hex-container">
+              <div className="input-wrapper">
+                <label className="hex-label">NOMBRE DE DUELISTA</label>
+                <input 
+                  type="text" 
+                  placeholder="USERNAME" 
+                  className="hex-input" 
+                  value={username} 
+                  onChange={e => setUsername(e.target.value)} 
+                  required 
+                />
+              </div>
 
-            {isRegister && (
-              <>
-                <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '0.5rem', marginBottom: '0.5rem', marginTop: '1rem', display: 'block', fontWeight: 800 }}>CORREO ELECTRÓNICO</label>
-                <input type="email" placeholder="duelista@multiverso.com" className="neon-input" value={email} onChange={e => setEmail(e.target.value)} required />
-              </>
-            )}
+              {isRegister && (
+                <div className="input-wrapper">
+                  <label className="hex-label">CORREO ELECTRÓNICO</label>
+                  <input 
+                    type="email" 
+                    placeholder="EMAIL" 
+                    className="hex-input" 
+                    value={email} 
+                    onChange={e => setEmail(e.target.value)} 
+                    required 
+                  />
+                </div>
+              )}
 
-            <label style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginLeft: '0.5rem', marginBottom: '0.5rem', marginTop: '1rem', display: 'block', fontWeight: 800 }}>CÓDIGO SECRETO</label>
-            <input type="password" placeholder="••••••••" className="neon-input" value={password} onChange={e => setPassword(e.target.value)} required />
-          </div>
+              <div className="input-wrapper">
+                <label className="hex-label">CÓDIGO SECRETO</label>
+                <input 
+                  type="password" 
+                  placeholder="PASSWORD" 
+                  className="hex-input" 
+                  value={password} 
+                  onChange={e => setPassword(e.target.value)} 
+                  required 
+                />
+              </div>
 
-          {error && <p style={{ color: '#ef4444', fontSize: '0.8rem', marginBottom: '1rem', fontWeight: 700 }}>{error.toUpperCase()}</p>}
-
-          <button type="submit" className="arcade-btn" disabled={loading}>
-            {loading ? 'PROCESANDO...' : (isRegister ? 'CREAR CUENTA' : 'INICIAR SESIÓN')}
-          </button>
-        </form>
-
-        <p style={{ marginTop: '1.5rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-          {isRegister ? '¿Ya tienes una cuenta?' : '¿No tienes cuenta?'}
-          <span
-            onClick={() => { setIsRegister(!isRegister); setError(''); }}
-            style={{ color: 'var(--primary)', cursor: 'pointer', marginLeft: '0.5rem', fontWeight: 800, textDecoration: 'underline' }}
-          >
-            {isRegister ? 'Inicia Sesión' : 'Regístrate aquí'}
-          </span>
-        </p>
-
-        {!isRegister && (
-          <div style={{ marginTop: '2rem', padding: '0.8rem', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
-            <p style={{ fontSize: '0.6rem', color: 'var(--text-muted)', marginBottom: '0.3rem' }}>ACCESO RÁPIDO</p>
-            <div style={{ fontSize: '0.7rem', color: 'var(--primary)', fontWeight: 700 }}>
-              Duelo / 123 • Admin / 123
+              {/* REMEMBER ME BUTTON */}
+              {!isRegister && (
+                <div className="remember-row" onClick={() => setRememberMe(!rememberMe)}>
+                   <div className={`hex-checkbox ${rememberMe ? 'checked' : ''}`}></div>
+                   <span>RECORDAR CUENTA</span>
+                </div>
+              )}
             </div>
-          </div>
-        )}
 
-        <div style={{ marginTop: '2rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', opacity: 0.7 }}>
-          <p style={{ fontSize: '0.6rem', color: 'var(--text-muted)', letterSpacing: '2px', fontWeight: 800 }}>DISEÑADO POR</p>
-          <img src={logoG} alt="Designer Logo" style={{ width: '40px', height: 'auto', filter: 'drop-shadow(0 0 5px var(--primary))' }} />
+            {error && <p className="login-error-msg">{error.toUpperCase()}</p>}
+
+            <button type="submit" className="hex-btn-main" disabled={loading}>
+              <div className="btn-inner">
+                {loading ? 'PROCESANDO...' : 'INGRESAR A LA BATALLA'}
+              </div>
+            </button>
+          </form>
+        </div>
+
+        <div className="login-switch-option">
+          <span>{isRegister ? '¿YA TIENES CUENTA?' : '¿ERES NUEVO DUELISTA?'}</span>
+          <button 
+            type="button"
+            className="switch-btn"
+            onClick={() => { setIsRegister(!isRegister); setError(''); }}
+          >
+            {isRegister ? 'INICIA SESIÓN' : 'REGÍSTRATE AQUÍ'}
+          </button>
+        </div>
+
+        <div className="designer-footer">
+          <span className="designer-label">DISEÑADO POR</span>
+          <img src={logoG} alt="Designer Logo" className="designer-icon" />
         </div>
       </motion.div>
     </div>

@@ -128,14 +128,65 @@ router.post('/victory', async (req, res) => {
     const user = await User.findOne({ username });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
-    const enemy = await Enemy.findById(enemyId);
+    const enemy = await Enemy.findById(enemyId).populate('deck');
     if (!enemy) return res.status(404).json({ error: 'Enemy not found' });
+
+    // --- RARITY WEIGHTS FOR DROPS ---
+    const RARITY_WEIGHTS = {
+      'Común': 100,
+      'Rara': 40,
+      'Épica': 15,
+      'Legendaria': 5,
+      'Mítica': 2,
+      'Divina': 1,
+      'Ancestral': 0.5,
+      'Inmortal': 0.2,
+      'Cósmica': 0.1
+    };
 
     // Always award 150 credits
     user.credits += 150;
 
     let firstTime = false;
     let rewardAvatar = null;
+    let rewardCard = null;
+
+    // --- RARITY-BASED DROP CHANCE ---
+    if (Math.random() <= 0.5 && enemy.deck && enemy.deck.length > 0) {
+      // Get only unique cards from the deck
+      const uniqueDeck = [];
+      const seenIds = new Set();
+      enemy.deck.forEach(card => {
+        if (card && card._id && !seenIds.has(card._id.toString())) {
+          uniqueDeck.push(card);
+          seenIds.add(card._id.toString());
+        }
+      });
+
+      if (uniqueDeck.length > 0) {
+        // Calculate total weight of unique cards
+        const totalWeight = uniqueDeck.reduce((sum, card) => {
+          return sum + (RARITY_WEIGHTS[card.rarity] || 100);
+        }, 0);
+
+        // Weighted Random Selection
+        let randomValue = Math.random() * totalWeight;
+        for (const card of uniqueDeck) {
+          const weight = RARITY_WEIGHTS[card.rarity] || 100;
+          if (randomValue < weight) {
+            rewardCard = card;
+            break;
+          }
+          randomValue -= weight;
+        }
+        
+        if (rewardCard) {
+          // Add to inventory and discovered set
+          user.inventory.push(rewardCard._id);
+          user.discoveredCards.addToSet(rewardCard._id);
+        }
+      }
+    }
 
     // First time defeating this enemy -> unlock their avatar
     if (!user.defeatedEnemies.some(id => id.toString() === enemyId)) {
@@ -147,7 +198,6 @@ router.post('/victory', async (req, res) => {
       firstTime = true;
     }
 
-
     await user.save();
 
     res.json({
@@ -155,6 +205,7 @@ router.post('/victory', async (req, res) => {
       newCredits: user.credits,
       firstTime,
       rewardAvatar,
+      rewardCard,
       unlockedEnemyAvatars: user.unlockedEnemyAvatars,
       defeatedEnemies: user.defeatedEnemies,
       duelsUnlocked: user.duelsUnlocked

@@ -76,7 +76,7 @@ function App() {
     const path = location.pathname.replace('/', '') || 'collection';
     
     const messages = {
-      'welcome': "¡Bienvenido, Duelista! Aprovechemos y compremos unos cuantos paquetes de cartas para iniciar tu colección. Te dirigiremos al apartado de compras ahora mismo.",
+      'welcome': "¡Bienvenido! Para empezar deberíamos comprar algunos paquetes de cartas, con 4 estaríamos bien. Te dirigiremos al apartado de compras ahora mismo.",
       'shop': "Aquí puedes comprar paquetes de cartas, cartas especiales, Avatares y aspectos para tu campo de duelo. Recuerda armar tu mazo una vez tengas tus cartas.",
       'deck': "Aquí puedes armar tu Mazo con un mínimo de 10 cartas y un máximo de 30. Recuerda que tu vida depende de la defensa de tus cartas.",
       'album': "En el Álbum puedes ver todas las cartas que posees y las que aún no has descubierto; tendrás que adivinarlas.",
@@ -169,11 +169,13 @@ function App() {
             </div>
           </div>
           <div className="header-actions-mobile" style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
-            <button className="glass-panel" onClick={() => setShowMissions(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 1rem', border: '1px solid var(--accent-gold)', borderRadius: '20px', cursor: 'pointer' }}>
-              <Trophy size={18} className="text-gold" />
-              <span className="hide-on-mobile" style={{ fontWeight: 600 }}>Misiones</span>
-              {missions.dailyWins > 0 && <span className="badge-dot" />}
-            </button>
+            {!user.justRegistered && (
+              <button className="glass-panel" onClick={() => setShowMissions(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 1rem', border: '1px solid var(--accent-gold)', borderRadius: '20px', cursor: 'pointer' }}>
+                <Trophy size={18} className="text-gold" />
+                <span className="hide-on-mobile" style={{ fontWeight: 600 }}>Misiones</span>
+                {missions.dailyWins > 0 && <span className="badge-dot" />}
+              </button>
+            )}
             <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem 1.2rem', border: '1px solid #f97316', borderRadius: '20px', background: 'rgba(249, 115, 22, 0.05)' }} title="Racha de Conexión">
               <Flame size={20} color="#f97316" fill={user.canClaimStreakReward ? "#f97316" : "none"} />
               <span style={{ fontWeight: 900, color: '#f97316', fontSize: '1.1rem' }}>{user.connectionStreak || 1}</span>
@@ -182,14 +184,18 @@ function App() {
               <CoinsIcon />
               <span style={{ fontWeight: 900, color: 'var(--accent-gold)', fontSize: '1.1rem' }}>{(user.credits || 0).toLocaleString()}</span>
             </div>
-            {user.role === 'admin' && (
-              <button className={`btn-primary ${currentPath === 'admin' ? 'active' : ''}`} onClick={() => navigate('/admin')}>
-                <Shield size={20} /> <span className="hide-on-mobile">Panel Admin</span>
-              </button>
+            {!user.justRegistered && (
+              <>
+                {user.role === 'admin' && (
+                  <button className={`btn-primary ${currentPath === 'admin' ? 'active' : ''}`} onClick={() => navigate('/admin')}>
+                    <Shield size={20} /> <span className="hide-on-mobile">Panel Admin</span>
+                  </button>
+                )}
+                <button className={`btn-primary ${currentPath !== 'admin' ? 'active' : ''}`} onClick={() => navigate('/collection')}>
+                  <Play size={20} /> <span className="hide-on-mobile">Mi Colección</span>
+                </button>
+              </>
             )}
-            <button className={`btn-primary ${currentPath !== 'admin' ? 'active' : ''}`} onClick={() => navigate('/collection')}>
-              <Play size={20} /> <span className="hide-on-mobile">Mi Colección</span>
-            </button>
             <button onClick={onLogout} className="btn-primary" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
               <UserIcon size={20} /> <span className="hide-on-mobile">Salir</span>
             </button>
@@ -207,7 +213,7 @@ function App() {
           title={onboardingTarget?.id === 'welcome' ? "BIENVENIDO DUELISTA" : undefined}
         />
 
-        {currentPath !== 'admin' && (
+        {currentPath !== 'admin' && !user.justRegistered && (
           <nav className="nav-bar">
             <TabItem id="collection" label="Cartas" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Archive size={18} />} />
             <TabItem id="deck" label="Mi Deck" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Shield size={18} />} badge={deck.length} />
@@ -259,7 +265,7 @@ function App() {
               <Route path="/shop" element={
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                   {/* ShopView sets updated user data here to Zustand */}
-                  <ShopView user={user} setUser={(u) => useStore.getState().login(u)} cards={cards} onUpdate={() => fetchData(API_URL)} baseUrl={BASE_URL} />
+                  <ShopView user={user} setUser={(u) => useStore.getState().login(u)} cards={cards} onUpdate={() => fetchData(API_URL)} baseUrl={BASE_URL} isOnboarding={user.justRegistered} />
                 </motion.div>
               } />
               <Route path="/story" element={
@@ -298,6 +304,7 @@ function App() {
           fetchData={fetchData}
           API_URL={API_URL}
           refreshUserData={refreshUserData}
+          login={login}
         />
       </div>
     </>
@@ -305,7 +312,7 @@ function App() {
 }
 
 // Wrapper component to use the match store reactively
-function PvPArenaWrapper({ user, activeDuel, setActiveDuel, deck, cards, BASE_URL, SHOP_URL, globalConfig, fetchData, API_URL, refreshUserData }) {
+function PvPArenaWrapper({ user, activeDuel, setActiveDuel, deck, cards, BASE_URL, SHOP_URL, globalConfig, fetchData, API_URL, refreshUserData, login }) {
   const store = useMatchStore();
   const { isPvP, p1Data, p2Data, myRole, setSetter } = store;
 
@@ -328,6 +335,7 @@ function PvPArenaWrapper({ user, activeDuel, setActiveDuel, deck, cards, BASE_UR
       cardsPool={cards}
       baseUrl={BASE_URL}
       globalConfig={globalConfig}
+      login={login}
       onExit={() => { 
         setActiveDuel(null); 
         store.resetMatch();

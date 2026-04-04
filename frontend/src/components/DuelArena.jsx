@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Swords, Timer, Scissors, Hand, Circle } from 'lucide-react';
+import { Swords, Timer, Scissors, Hand, Circle, Crown, Disc, X, Coins } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useMatchStore from '../store/useMatchStore';
 
@@ -11,8 +11,15 @@ import CardEntity from './Duel/CardEntity';
 
 import { socket } from '../utils/socket';
 
-function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
+function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfig, login, onExit }) {
   const store = useMatchStore();
+  
+  // COIN FLIP STATES
+  const [coinFlipActive, setCoinFlipActive] = React.useState(false);
+  const [coinResult, setCoinResult] = React.useState(null); // 'heads' or 'tails'
+  const [coinAnimating, setCoinAnimating] = React.useState(false);
+  const [showFinalMsg, setShowFinalMsg] = React.useState(false);
+  const [victoryData, setVictoryData] = React.useState(null);
 
   // 1. Setup & Initialization
   useEffect(() => {
@@ -26,51 +33,40 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
       store.initGame(user, enemy, playerDeckIds, cardsPool);
     }
     
-    // Socket Listeners for PvP
+    // ... (Socket listeners unchanged) ...
     if (store.isPvP) {
-      socket.on('timer_tick', (data) => store.setSetter('pvpTimer', data.timer));
-      socket.on('timer_expired', () => store.advancePhase());
-      socket.on('remote_action', (action) => store.processRemoteAction(action));
-      
-      socket.on('reveal_timer_tick', (data) => store.setSetter('revealTimer', data.timer));
-      socket.on('rps_phase_start', (data) => {
-        store.setSetter('rpsPhase', true);
-        store.setSetter('rpsTimer', data.timer);
-      });
-      socket.on('rps_timer_tick', (data) => store.setSetter('rpsTimer', data.timer));
-      
-      socket.on('rps_result', (data) => {
-        store.setSetter('rpsWinner', data.winner);
-        const myChoice = data.choices[user.username] || data.choices[user.name];
-        const oppChoice = data.choices[enemy.username] || data.choices[enemy.name];
-        store.setSetter('myRpsChoice', myChoice);
-        store.setSetter('opponentRpsChoice', oppChoice);
-      });
-
-      socket.on('game_start', (data) => {
-        // Robust role detection: prefer server-assigned role for this socket, or derive from names
-        let myAssignedRole = data.roles[socket.id];
-        if (!myAssignedRole) {
-          const amIP1 = data.p1Name === (user.username || user.name);
-          myAssignedRole = amIP1 ? 'player1' : 'player2';
-        }
-
-        console.log(`[DuelArena] game_start. Assigned Role: ${myAssignedRole}`);
-        store.setSetter('myRole', myAssignedRole);
-        store.setSetter('rpsPhase', false);
-        store.setSetter('isProcessing', false);
-        
-        const firstTurn = data.firstTurn || 'player1';
-        store.setSetter('turn', firstTurn); 
-        
-        const isMeFirst = myAssignedRole === firstTurn;
-        const turnOwnerName = isMeFirst ? 'Tú' : (enemy.username || enemy.name);
-        const orderMsg = isMeFirst ? '¡VAS PRIMERO!' : 'VAS SEGUNDO';
-        store.addLog(`¡Duelo Iniciado! ${orderMsg}`);
-        store.showSplash(orderMsg);
-        
-        store.startTurn(firstTurn);
-      });
+        socket.on('timer_tick', (data) => store.setSetter('pvpTimer', data.timer));
+        socket.on('timer_expired', () => store.advancePhase());
+        socket.on('remote_action', (action) => store.processRemoteAction(action));
+        socket.on('reveal_timer_tick', (data) => store.setSetter('revealTimer', data.timer));
+        socket.on('rps_phase_start', (data) => {
+          store.setSetter('rpsPhase', true);
+          store.setSetter('rpsTimer', data.timer);
+        });
+        socket.on('rps_timer_tick', (data) => store.setSetter('rpsTimer', data.timer));
+        socket.on('rps_result', (data) => {
+          store.setSetter('rpsWinner', data.winner);
+          const myChoice = data.choices[user.username] || data.choices[user.name];
+          const oppChoice = data.choices[enemy.username] || data.choices[enemy.name];
+          store.setSetter('myRpsChoice', myChoice);
+          store.setSetter('opponentRpsChoice', oppChoice);
+        });
+        socket.on('game_start', (data) => {
+          let myAssignedRole = data.roles[socket.id];
+          if (!myAssignedRole) {
+            const amIP1 = data.p1Name === (user.username || user.name);
+            myAssignedRole = amIP1 ? 'player1' : 'player2';
+          }
+          store.setSetter('myRole', myAssignedRole);
+          store.setSetter('rpsPhase', false);
+          store.setSetter('isProcessing', false);
+          const firstTurn = data.firstTurn || 'player1';
+          store.setSetter('turn', firstTurn); 
+          const isMeFirst = myAssignedRole === firstTurn;
+          const orderMsg = isMeFirst ? '¡VAS PRIMERO!' : 'VAS SEGUNDO';
+          store.showSplash(orderMsg);
+          store.startTurn(firstTurn);
+        });
     }
 
     store.setSetter('onVictory', async () => {
@@ -103,19 +99,30 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ username: user.username, enemyId: enemy._id })
           });
-          const victoryData = await victoryRes.json();
-          if (victoryData.success) {
+          const vData = await victoryRes.json();
+          if (vData.success) {
             const updatedUser = { 
               ...user, 
-              credits: victoryData.newCredits, 
-              defeatedEnemies: victoryData.defeatedEnemies || user.defeatedEnemies || [],
-              duelsUnlocked: victoryData.duelsUnlocked || user.duelsUnlocked
+              credits: vData.newCredits, 
+              defeatedEnemies: vData.defeatedEnemies || user.defeatedEnemies || [],
+              duelsUnlocked: vData.duelsUnlocked || user.duelsUnlocked,
+              inventory: vData.rewardCard ? [...(user.inventory || []), vData.rewardCard._id] : (user.inventory || []),
+              discoveredCards: vData.rewardCard ? [...new Set([...(user.discoveredCards || []), vData.rewardCard._id])] : (user.discoveredCards || [])
             };
-            const { login } = await import('../store.js').then(m => ({ login: m.default.getState().login }));
-            login(updatedUser);
-            if (victoryData.firstTime && victoryData.rewardAvatar) {
-              setTimeout(() => alert(`🏆 ¡Primera victoria! Desbloqueaste el avatar de ${enemy.name}!`), 500);
-            }
+            
+            if (login) login(updatedUser);
+            
+            // --- INITIATE COIN FLIP SEQUENCE ---
+            setVictoryData(vData);
+            setCoinResult(vData.rewardCard ? 'heads' : 'tails');
+            setCoinFlipActive(true);
+            setCoinAnimating(true);
+            
+            // Stop animation and show result after 3s
+            setTimeout(() => {
+              setCoinAnimating(false);
+              setShowFinalMsg(true);
+            }, 3000);
           }
         }
       } catch (e) { console.error("Win tracking error:", e); }
@@ -175,7 +182,7 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
             {[2, 1, 0].map(i => <FieldSlot key={`enemy-${i}`} side="enemy" index={i} baseUrl={baseUrl} />)}
           </div>
         </div>
-        {store.selectedAttackerIdx !== null && store.turn === store.myRole && ePOV.field.some(slot => !slot) && (
+        {store.selectedAttackerIdx !== null && store.turn === store.myRole && ePOV.field.filter(slot => !slot).length > store.directAttacksThisTurn && (
           <div className="direct-attack-zone-new" onClick={() => store.executeAttack(store.selectedAttackerIdx, -1)}>ATAQUE DIRECTO</div>
         )}
       </div>
@@ -336,8 +343,65 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, onExit }) {
         <HandArea baseUrl={baseUrl} />
 
         <AnimatePresence>
-          {store.winner && (
-            <div className="winner-overlay">
+          {coinFlipActive && (
+            <motion.div 
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              style={{ position: 'fixed', inset: 0, zIndex: 3000, background: 'rgba(0,0,0,0.92)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(15px)' }}
+            >
+              <div className="coin-container">
+                <div 
+                  className="coin-flip-card"
+                  style={{ 
+                    transform: coinAnimating 
+                      ? 'rotateY(2520deg)' 
+                      : (coinResult === 'heads' ? 'rotateY(0deg)' : 'rotateY(180deg)') 
+                  }}
+                >
+                  <div className="coin-face face-front">
+                    <div className="coin-shine"></div>
+                    <div className="coin-symbol">
+                      <Crown size={80} strokeWidth={2.5} fill="rgba(255,255,255,0.2)" />
+                    </div>
+                    <span className="coin-label">CARA</span>
+                  </div>
+                  <div className="coin-face face-back">
+                    <div className="coin-shine"></div>
+                    <div className="coin-symbol">
+                      <Disc size={80} strokeWidth={2.5} fill="rgba(255,255,255,0.1)" />
+                    </div>
+                    <span className="coin-label">SELLO</span>
+                  </div>
+                </div>
+              </div>
+
+              {showFinalMsg && (
+                <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ textAlign: 'center', zIndex: 3005 }}>
+                  <h2 className="gradient-text" style={{ fontSize: '3.5rem', fontWeight: 950, marginBottom: '0.5rem', textShadow: '0 0 30px rgba(99,102,241,0.5)' }}>
+                    {coinResult === 'heads' ? '¡GANASTE CARTA!' : 'SUERTE LA PRÓXIMA VEZ'}
+                  </h2>
+                  
+                  {coinResult === 'heads' && victoryData?.rewardCard && (
+                    <motion.div initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ type: 'spring', damping: 15 }}>
+                       <div style={{ width: '180px', height: '250px', margin: '1.5rem auto', borderRadius: '16px', overflow: 'hidden', border: '5px solid var(--accent-gold)', boxShadow: '0 0 50px rgba(212,175,55,0.6)', transform: 'perspective(1000px) rotateX(10deg)' }}>
+                          <img src={`${victoryData.rewardCard.imageUrl && typeof victoryData.rewardCard.imageUrl === 'string' && victoryData.rewardCard.imageUrl.startsWith('http') ? '' : baseUrl}${victoryData.rewardCard.imageUrl}`} alt="Reward" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                       </div>
+                       <p style={{ fontWeight: 950, fontSize: '1.5rem', color: 'var(--accent-gold)', letterSpacing: '2px', textTransform: 'uppercase' }}>{victoryData.rewardCard.name}</p>
+                    </motion.div>
+                  )}
+
+                  <button className="btn-epic-cta" style={{ marginTop: '3rem', padding: '1rem 3rem', fontSize: '1.2rem' }} onClick={() => {
+                     setCoinFlipActive(false);
+                     onExit();
+                  }}>RECLAMAR Y VOLVER</button>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {store.winner && !coinFlipActive && (
+            <div className="winner-overlay" style={{ zIndex: 2500 }}>
               <div className="winner-card glass-panel">
                 <h1 className={store.winner === 'VICTORIA' ? 'victory-text' : 'defeat-text'}>{store.winner}</h1>
                 <button className="arcade-btn" onClick={async () => {

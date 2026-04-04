@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { motion } from 'framer-motion';
-import { Shield, Play, Lock } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Shield, Play, Lock, X, Gift } from 'lucide-react';
 
 function StoryView({ user, baseUrl, onStartDuel }) {
   const [enemies, setEnemies] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedLootEnemy, setSelectedLootEnemy] = useState(null);
 
   useEffect(() => {
     fetchEnemies();
@@ -19,6 +20,63 @@ function StoryView({ user, baseUrl, onStartDuel }) {
       console.error("Error fetching story enemies:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const calculateDrops = (deck) => {
+    if (!deck || deck.length === 0) return [];
+    
+    const RARITY_WEIGHTS = {
+      'Común': 100,
+      'Rara': 40,
+      'Épica': 15,
+      'Legendaria': 5,
+      'Mítica': 2,
+      'Divina': 1,
+      'Ancestral': 0.5,
+      'Inmortal': 0.2,
+      'Cósmica': 0.1
+    };
+
+    // Find all UNIQUE cards
+    const uniqueCardsMap = {};
+    deck.forEach(c => {
+      if (c && c._id && !uniqueCardsMap[c._id]) {
+        uniqueCardsMap[c._id] = c;
+      }
+    });
+
+    const uniqueList = Object.values(uniqueCardsMap);
+    if (uniqueList.length === 0) return [];
+
+    // Calculate total weight
+    const totalWeight = uniqueList.reduce((sum, card) => {
+      return sum + (RARITY_WEIGHTS[card.rarity] || 100);
+    }, 0);
+
+    // Calculate probabilities
+    return uniqueList.map(card => {
+        const weight = RARITY_WEIGHTS[card.rarity] || 100;
+        return {
+            ...card,
+            relativeProb: (weight / totalWeight) * 100,
+            absoluteProb: (weight / totalWeight) * 50
+        };
+    }).sort((a, b) => b.absoluteProb - a.absoluteProb);
+  };
+
+  const getRarityColor = (rarity) => {
+    switch (rarity) {
+      case 'Común': return '#94a3b8';
+      case 'Rara': return '#3b82f6';
+      case 'Épica': return '#a855f7';
+      case 'Legendaria': return '#eab308';
+      case 'Mítica': return '#ec4899';
+      case 'Divina': return '#facc15';
+      case 'Ancestral': return '#f97316';
+      case 'Inmortal': return '#ef4444';
+      case 'Cósmica': return '#06b6d4';
+      default: return 'white';
     }
   };
 
@@ -38,6 +96,16 @@ function StoryView({ user, baseUrl, onStartDuel }) {
           const isRankUnlocked = enemy.rankIndex === 0 || isPrevDefeated;
           const isEnabled = enemy.enabled && enemy.deck && enemy.deck.length > 0 && isRankUnlocked;
 
+          // Unique cards for drop preview
+          const uniqueCards = [];
+          const seen = new Set();
+          (enemy.deck || []).forEach(card => {
+            if (card && card._id && !seen.has(card._id)) {
+              uniqueCards.push(card);
+              seen.add(card._id);
+            }
+          });
+
           return (
             <motion.div 
               key={enemy._id}
@@ -50,9 +118,69 @@ function StoryView({ user, baseUrl, onStartDuel }) {
                 textAlign: 'center', 
                 position: 'relative',
                 border: isEnabled ? '1px solid var(--primary)' : '1px solid var(--glass-border)',
-                background: isEnabled ? 'rgba(99, 102, 241, 0.05)' : 'rgba(255,255,255,0.02)'
+                background: isEnabled ? 'rgba(99, 102, 241, 0.05)' : 'rgba(255,255,255,0.02)',
+                overflow: 'hidden'
               }}
             >
+              {isEnabled && uniqueCards.length > 0 && (
+                <div 
+                  className="possible-drops-container" 
+                  onClick={() => setSelectedLootEnemy(enemy)}
+                  style={{ 
+                  position: 'absolute', 
+                  top: '10px', 
+                  left: '10px', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '5px',
+                  alignItems: 'flex-start',
+                  zIndex: 10,
+                  cursor: 'pointer'
+                }}>
+                  <span style={{ 
+                    fontSize: '0.65rem', 
+                    fontWeight: 900, 
+                    color: 'var(--accent-gold)', 
+                    background: 'rgba(0,0,0,0.5)', 
+                    padding: '2px 6px', 
+                    borderRadius: '4px',
+                    letterSpacing: '1px' 
+                  }}>POSIBLE BOTÍN</span>
+                  <div style={{ display: 'flex', gap: '-5px' }}>
+                    {uniqueCards.slice(0, 3).map((c, i) => (
+                      <div 
+                        key={c._id}
+                        style={{ 
+                          width: '32px', 
+                          height: '32px', 
+                          borderRadius: '50%', 
+                          border: '2px solid var(--accent-gold)',
+                          background: `url(${c.imageUrl && typeof c.imageUrl === 'string' && c.imageUrl.startsWith('http') ? '' : baseUrl}${c.imageUrl}) center/cover`,
+                          marginLeft: i > 0 ? '-10px' : '0',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.5)'
+                        }}
+                      />
+                    ))}
+                    {uniqueCards.length > 3 && (
+                      <div style={{ 
+                        width: '32px', 
+                        height: '32px', 
+                        borderRadius: '50%', 
+                        background: 'rgba(0,0,0,0.7)', 
+                        border: '2px solid var(--glass-border)',
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        fontSize: '0.7rem',
+                        fontWeight: 900,
+                        marginLeft: '-10px',
+                        color: 'var(--text-muted)'
+                      }}>+{uniqueCards.length - 3}</div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {!isEnabled && (
                 <div style={{ position: 'absolute', top: '1rem', right: '1rem', color: 'var(--text-muted)' }}>
                   <Lock size={20} />
@@ -84,8 +212,8 @@ function StoryView({ user, baseUrl, onStartDuel }) {
                 <>
                   <p style={{ color: 'var(--primary)', fontWeight: 800, fontSize: '0.9rem', marginBottom: '1.5rem' }}>HP: {realHP}</p>
                   <button 
-                    className="arcade-btn" 
-                    style={{ margin: 0 }}
+                    className="btn-epic-cta" 
+                    style={{ margin: '0 auto' }}
                     onClick={() => onStartDuel(enemy)}
                   >
                     <Play size={18} /> DESAFIAR
@@ -100,13 +228,98 @@ function StoryView({ user, baseUrl, onStartDuel }) {
             </motion.div>
           );
         })}
-        
-        {enemies.length === 0 && (
-            <div className="glass-panel" style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '3rem' }}>
-                <p style={{ color: 'var(--text-muted)' }}>No hay desafíos disponibles actualmente. Vuelve más tarde.</p>
-            </div>
-        )}
       </div>
+
+      {/* DETAILED LOOT MODAL */}
+      <AnimatePresence>
+        {selectedLootEnemy && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="modal-overlay"
+            style={{ zIndex: 2000, padding: '1rem' }}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 50 }}
+              className="glass-panel"
+              style={{ 
+                maxWidth: '600px', 
+                width: '100%', 
+                maxHeight: '80vh', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                padding: '0',
+                border: '1px solid var(--accent-gold)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid rgba(212,175,55,0.2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Gift className="text-gold" size={24} />
+                  <h3 style={{ margin: 0, letterSpacing: '2px', fontWeight: 900 }}>TABLA DE BOTÍN: {selectedLootEnemy.name}</h3>
+                </div>
+                <button 
+                  onClick={() => setSelectedLootEnemy(null)}
+                  style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer' }}
+                ><X size={24} /></button>
+              </div>
+
+              <div className="scrollbar" style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1.5rem', textAlign: 'center', background: 'rgba(212,175,55,0.05)', padding: '0.8rem', borderRadius: '8px' }}>
+                  Cada victoria otorga un <strong>50% de probabilidad</strong> de obtener una de las siguientes cartas:
+                </p>
+
+                <div style={{ display: 'grid', gap: '1rem' }}>
+                  {calculateDrops(selectedLootEnemy.deck).map(card => (
+                    <div 
+                      key={card._id}
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '1.2rem', 
+                        padding: '1rem', 
+                        background: 'rgba(255,255,255,0.02)', 
+                        borderRadius: '12px',
+                        border: '1px solid var(--glass-border)'
+                      }}
+                    >
+                      <div style={{ 
+                        width: '50px', 
+                        height: '70px', 
+                        borderRadius: '6px', 
+                        background: `url(${card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http') ? '' : baseUrl}${card.imageUrl}) center/cover`,
+                        border: '1px solid var(--glass-border)'
+                      }} />
+                      <div style={{ flex: 1 }}>
+                        <h4 style={{ margin: '0 0 4px', fontSize: '1rem', fontWeight: 900 }}>{card.name}</h4>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ 
+                            fontSize: '0.65rem', 
+                            fontWeight: 900, 
+                            color: getRarityColor(card.rarity),
+                            background: 'rgba(255,255,255,0.05)',
+                            padding: '2px 8px',
+                            borderRadius: '4px',
+                            border: `1px solid ${getRarityColor(card.rarity)}33`
+                          }}>{card.rarity?.toUpperCase() || 'COMÚN'}</span>
+                          <p style={{ margin: 0, fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>{card.type} | {card.attribute}</p>
+                        </div>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <p style={{ 
+                          margin: 0, 
+                          fontSize: '1.2rem', 
+                          fontWeight: 950, 
+                          color: card.absoluteProb < 5 ? '#f87171' : 'var(--accent-gold)' 
+                        }}>{card.absoluteProb.toFixed(1)}%</p>
+                        <p style={{ margin: 0, fontSize: '0.6rem', color: 'var(--text-muted)', fontWeight: 800 }}>PROBABILIDAD</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

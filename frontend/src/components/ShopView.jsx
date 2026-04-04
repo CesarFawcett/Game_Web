@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { Plus, Shield } from 'lucide-react';
+import { Plus, Shield, ShoppingBag, Check, Lock, Gift, Trophy } from 'lucide-react';
 import CardItem from './CardItem';
 import { playSound } from '../utils/sound';
 
-function ShopView({ user, setUser, cards, onUpdate, baseUrl }) {
+function ShopView({ user, setUser, cards, onUpdate, baseUrl, isOnboarding }) {
   const [packs, setPacks] = useState([]);
   const [isOpening, setIsOpening] = useState(false);
   const [reward, setReward] = useState(null);
@@ -233,7 +233,7 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl }) {
       <div className="chests-grid">
         {packs.length === 0 ? (
            <p style={{ color: 'var(--text-muted)', gridColumn: '1 / -1', textAlign: 'center' }}>No hay sobres disponibles en la tienda en este momento.</p>
-        ) : packs.map(pack => (
+        ) : (isOnboarding ? packs.slice(0, 1) : packs).map(pack => (
           <ChestCard 
             key={pack._id}
             title={pack.name}
@@ -249,63 +249,67 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl }) {
         ))}
       </div>
 
-      <div style={{ textAlign: 'center', marginBottom: '2rem', marginTop: '4rem' }}>
-        <h2 className="gradient-text" style={{ fontSize: '2.5rem', fontWeight: 900 }}>COLECCIÓN DE AVATARES</h2>
-        <p style={{ color: 'var(--text-muted)' }}>Personaliza tu perfil con avatares exclusivos</p>
-      </div>
+      {!isOnboarding && (
+        <>
+          <div style={{ textAlign: 'center', marginBottom: '2rem', marginTop: '4rem' }}>
+            <h2 className="gradient-text" style={{ fontSize: '2.5rem', fontWeight: 900 }}>COLECCIÓN DE AVATARES</h2>
+            <p style={{ color: 'var(--text-muted)' }}>Personaliza tu perfil con avatares exclusivos</p>
+          </div>
 
-      <div className="chests-grid">
-        {avatars.length === 0 ? (
-           <p style={{ color: 'var(--text-muted)', gridColumn: '1 / -1', textAlign: 'center' }}>No hay avatares disponibles en la tienda en este momento.</p>
-        ) : avatars.map(avatar => {
-          const isOwned = user.ownedAvatars?.includes(avatar._id);
-          const isEquipped = user.equippedAvatar === avatar.imageUrl;
-          return (
-            <AvatarCard 
-              key={avatar._id}
-              title={avatar.name}
-              price={avatar.price}
-              imageUrl={avatar.imageUrl}
-              onPurchase={() => handleBuyAvatar(avatar._id, avatar.price)}
-              onEquip={() => handleEquipAvatar(avatar.imageUrl)}
-              loading={loading}
-              userCredits={user.credits}
-              isOwned={isOwned}
-              isEquipped={isEquipped}
-              baseUrl={baseUrl}
-            />
-          );
-        })}
-      </div>
+          <div className="chests-grid">
+            {avatars.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', gridColumn: '1 / -1', textAlign: 'center' }}>No hay avatares disponibles en la tienda en este momento.</p>
+            ) : avatars.map(avatar => {
+              const isOwned = user.ownedAvatars?.includes(avatar._id);
+              const isEquipped = user.equippedAvatar === avatar.imageUrl;
+              return (
+                <AvatarCard 
+                  key={avatar._id}
+                  title={avatar.name}
+                  price={avatar.price}
+                  imageUrl={avatar.imageUrl}
+                  onPurchase={() => handleBuyAvatar(avatar._id, avatar.price)}
+                  onEquip={() => handleEquipAvatar(avatar.imageUrl)}
+                  loading={loading}
+                  userCredits={user.credits}
+                  isOwned={isOwned}
+                  isEquipped={isEquipped}
+                  baseUrl={baseUrl}
+                />
+              );
+            })}
+          </div>
 
-      <div style={{ textAlign: 'center', marginBottom: '2rem', marginTop: '4rem' }}>
-        <h2 className="gradient-text" style={{ fontSize: '2.5rem', fontWeight: 900 }}>FONDOS DE CAMPO</h2>
-        <p style={{ color: 'var(--text-muted)' }}>Cambia la atmósfera de tus duelos legendarios</p>
-      </div>
+          <div style={{ textAlign: 'center', marginBottom: '2rem', marginTop: '4rem' }}>
+            <h2 className="gradient-text" style={{ fontSize: '2.5rem', fontWeight: 900 }}>FONDOS DE CAMPO</h2>
+            <p style={{ color: 'var(--text-muted)' }}>Cambia la atmósfera de tus duelos legendarios</p>
+          </div>
 
-      <div className="chests-grid">
-        {shopBoards.length === 0 ? (
-           <p style={{ color: 'var(--text-muted)', gridColumn: '1 / -1', textAlign: 'center' }}>No hay tableros disponibles en la tienda en este momento.</p>
-        ) : shopBoards.map(board => {
-          const isOwned = user.ownedBoards?.includes(board._id);
-          const isEquipped = user.equippedBoard === board.imageUrl;
-          return (
-            <BoardCard 
-              key={board._id}
-              title={board.name}
-              price={board.price}
-              imageUrl={board.imageUrl}
-              onPurchase={() => handleBuyBoard(board._id, board.price)}
-              onEquip={() => handleEquipBoard(board)}
-              loading={loading}
-              userCredits={user.credits}
-              isOwned={isOwned}
-              isEquipped={isEquipped}
-              baseUrl={baseUrl}
-            />
-          );
-        })}
-      </div>
+          <div className="chests-grid">
+            {shopBoards.length === 0 ? (
+              <p style={{ color: 'var(--text-muted)', gridColumn: '1 / -1', textAlign: 'center' }}>No hay tableros disponibles en la tienda en este momento.</p>
+            ) : shopBoards.map(board => {
+              const isOwned = user.ownedBoards?.includes(board._id);
+              const isEquipped = user.equippedBoard === board.imageUrl;
+              return (
+                <BoardCard 
+                  key={board._id}
+                  title={board.name}
+                  price={board.price}
+                  imageUrl={board.imageUrl}
+                  onPurchase={() => handleBuyBoard(board._id, board.price)}
+                  onEquip={() => handleEquipBoard(board)}
+                  loading={loading}
+                  userCredits={user.credits}
+                  isOwned={isOwned}
+                  isEquipped={isEquipped}
+                  baseUrl={baseUrl}
+                />
+              );
+            })}
+          </div>
+        </>
+      )}
 
       <AnimatePresence>
         {reward && (
@@ -318,7 +322,9 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl }) {
                 </motion.div>
               ))}
             </div>
-            <button className="arcade-btn" style={{ maxWidth: '300px' }} onClick={() => setReward(null)}>RECLAMAR CARTAS</button>
+            <button className="btn-claim-epic" onClick={() => setReward(null)}>
+              <Trophy size={24} /> RECLAMAR CARTAS
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -327,6 +333,8 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl }) {
 }
 
 function ChestCard({ title, price, description, onPurchase, loading, userCredits, disabled, isOpening, imageUrl, baseUrl }) {
+  const isAffordable = userCredits >= price || price === 0;
+
   return (
     <div className={`chest-card ${disabled ? 'disabled' : ''}`}>
       <div className="chest-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '180px' }}>
@@ -346,26 +354,31 @@ function ChestCard({ title, price, description, onPurchase, loading, userCredits
           }}
         />
       </div>
-      <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-        <h3 style={{ fontSize: '1.4rem', fontWeight: 800 }}>{title}</h3>
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>{description}</p>
+      <div style={{ textAlign: 'center', marginTop: '1.2rem' }}>
+        <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>{title}</h3>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem', minHeight: '3rem' }}>{description}</p>
       </div>
-      <div style={{ width: '100%' }}>
+      <div style={{ width: '100%', marginTop: 'auto' }}>
         {disabled ? (
-          <div className="coming-soon-badge" style={{ textAlign: 'center', width: '100%', padding: '10px', fontSize: '0.8rem' }}>PRÓXIMAMENTE</div>
+          <div className="coming-soon-badge" style={{ textAlign: 'center', width: '100%', padding: '12px' }}>
+            <Lock size={14} style={{ marginRight: '8px' }} /> PRÓXIMAMENTE
+          </div>
         ) : (
           <button 
-            className="arcade-btn" 
+            className={`btn-shop-buy ${price === 0 ? 'btn-shop-free' : (!isAffordable ? 'btn-shop-locked' : '')}`} 
             onClick={onPurchase}
-            disabled={loading}
-            style={{ 
-              margin: 0, 
-              background: price === 0 ? 'var(--accent-gold)' : (userCredits >= price ? 'var(--primary)' : 'rgba(239, 68, 68, 0.1)'),
-              color: price === 0 ? 'black' : 'white',
-              fontWeight: price === 0 ? 900 : 700
-            }}
+            disabled={loading || (!isAffordable && price > 0)}
           >
-            {loading ? 'ABRIENDO...' : (price === 0 ? 'ABRIR GRATIS' : `${price} 🪙`)}
+            {loading ? (
+              'PROCESANDO...'
+            ) : price === 0 ? (
+              <><Gift size={20} /> ABRIR GRATIS</>
+            ) : (
+              <>
+                {!isAffordable && <Lock size={18} />}
+                <ShoppingBag size={18} /> {price} 🪙
+              </>
+            )}
           </button>
         )}
       </div>
@@ -374,6 +387,8 @@ function ChestCard({ title, price, description, onPurchase, loading, userCredits
 }
 
 function AvatarCard({ title, price, onPurchase, onEquip, loading, userCredits, isOwned, isEquipped, imageUrl, baseUrl }) {
+  const isAffordable = userCredits >= price;
+
   return (
     <div className={`chest-card ${isOwned && !isEquipped ? 'owned' : ''}`}>
       <div className="chest-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '180px' }}>
@@ -382,37 +397,38 @@ function AvatarCard({ title, price, onPurchase, onEquip, loading, userCredits, i
              width: '120px', 
              height: '150px', 
              background: `url(${imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http') ? '' : baseUrl}${imageUrl}) center/cover`,
-             borderRadius: '8px',
-             border: isEquipped ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
-             boxShadow: isEquipped ? '0 0 15px rgba(212, 175, 55, 0.5)' : 'none'
+             borderRadius: '50%',
+             border: isEquipped ? '4px solid #fbbf24' : '2px solid rgba(255,255,255,0.1)',
+             boxShadow: isEquipped ? '0 0 20px rgba(251, 191, 36, 0.4)' : 'none',
+             transition: 'all 0.3s ease'
           }}
         />
       </div>
       <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{title}</h3>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 900 }}>{title}</h3>
       </div>
-      <div style={{ width: '100%', marginTop: '1rem' }}>
+      <div style={{ width: '100%', marginTop: '1.2rem' }}>
         {isOwned ? (
            isEquipped ? (
-             <div className="coming-soon-badge" style={{ backgroundColor: 'var(--accent-gold)', color: 'black', fontWeight: 800, textAlign: 'center', width: '100%', padding: '10px', fontSize: '0.8rem' }}>EQUIPADO</div>
+             <div className="btn-shop-active">
+               <Check size={18} /> EQUIPADO
+             </div>
            ) : (
              <button 
-                className="arcade-btn green" 
+                className="btn-shop-equip" 
                 onClick={onEquip}
                 disabled={loading}
-                style={{ margin: 0, width: '100%' }}
              >
-                {loading ? '...' : 'EQUIPAR'}
+                {loading ? '...' : <><Plus size={18} /> EQUIPAR</>}
              </button>
            )
         ) : (
           <button 
-            className="arcade-btn" 
+            className={`btn-shop-buy ${!isAffordable ? 'btn-shop-locked' : ''}`} 
             onClick={onPurchase}
-            disabled={loading}
-            style={{ margin: 0, background: userCredits >= price ? 'var(--primary)' : 'rgba(239, 68, 68, 0.1)' }}
+            disabled={loading || !isAffordable}
           >
-            {loading ? '...' : `${price} 🪙`}
+            {loading ? '...' : <><ShoppingBag size={18} /> {price} 🪙</>}
           </button>
         )}
       </div>
@@ -421,6 +437,8 @@ function AvatarCard({ title, price, onPurchase, onEquip, loading, userCredits, i
 }
 
 function BoardCard({ title, price, onPurchase, onEquip, loading, userCredits, isOwned, isEquipped, imageUrl, baseUrl }) {
+  const isAffordable = userCredits >= price;
+
   return (
     <div className={`chest-card ${isOwned && !isEquipped ? 'owned' : ''}`} style={{ gridColumn: 'span 1' }}>
       <div className="chest-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '180px' }}>
@@ -429,37 +447,38 @@ function BoardCard({ title, price, onPurchase, onEquip, loading, userCredits, is
              width: '180px', 
              height: '110px', 
              background: `url(${imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http') ? '' : baseUrl}${imageUrl}) center/cover`,
-             borderRadius: '8px',
-             border: isEquipped ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
-             boxShadow: isEquipped ? '0 0 15px rgba(212, 175, 55, 0.5)' : 'none'
+             borderRadius: '12px',
+             border: isEquipped ? '4px solid #fbbf24' : '2px solid rgba(255,255,255,0.1)',
+             boxShadow: isEquipped ? '0 0 20px rgba(251, 191, 36, 0.4)' : 'none',
+             transition: 'all 0.3s ease'
           }}
         />
       </div>
       <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-        <h3 style={{ fontSize: '1.2rem', fontWeight: 800 }}>{title}</h3>
+        <h3 style={{ fontSize: '1.2rem', fontWeight: 900 }}>{title}</h3>
       </div>
-      <div style={{ width: '100%', marginTop: '1rem' }}>
+      <div style={{ width: '100%', marginTop: '1.2rem' }}>
         {isOwned ? (
            isEquipped ? (
-             <div className="coming-soon-badge" style={{ backgroundColor: 'var(--accent-gold)', color: 'black', fontWeight: 800, textAlign: 'center', width: '100%', padding: '10px', fontSize: '0.8rem' }}>EQUIPADO</div>
+             <div className="btn-shop-active">
+               <Check size={18} /> EQUIPADO
+             </div>
            ) : (
              <button 
-                className="arcade-btn green" 
+                className="btn-shop-equip" 
                 onClick={onEquip}
                 disabled={loading}
-                style={{ margin: 0, width: '100%' }}
              >
-                {loading ? '...' : 'EQUIPAR'}
+                {loading ? '...' : <><Plus size={18} /> EQUIPAR</>}
              </button>
            )
         ) : (
           <button 
-            className="arcade-btn" 
+            className={`btn-shop-buy ${!isAffordable ? 'btn-shop-locked' : ''}`} 
             onClick={onPurchase}
-            disabled={loading}
-            style={{ margin: 0, background: userCredits >= price ? 'var(--primary)' : 'rgba(239, 68, 68, 0.1)' }}
+            disabled={loading || !isAffordable}
           >
-            {loading ? '...' : `${price} 🪙`}
+            {loading ? '...' : <><ShoppingBag size={18} /> {price} 🪙</>}
           </button>
         )}
       </div>

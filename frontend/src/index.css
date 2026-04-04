@@ -729,6 +729,177 @@ body {
   background: #16a34a;
 }
 
+/* EPIC CALL TO ACTION BUTTONS (DESAFIAR / BUSCAR OPONENTE) */
+.btn-epic-cta {
+  background: linear-gradient(135deg, var(--primary) 0%, #4338ca 100%);
+  color: #fff;
+  border: none;
+  padding: 1rem 2.5rem;
+  border-radius: 12px;
+  font-weight: 900;
+  font-size: 1.1rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 
+    0 10px 20px -5px rgba(99, 102, 241, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(5px);
+}
+
+.btn-epic-cta::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  transition: none;
+}
+
+.btn-epic-cta:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 
+    0 20px 40px -10px rgba(99, 102, 241, 0.6),
+    0 0 15px rgba(99, 102, 241, 0.3);
+  border-color: rgba(251, 191, 36, 0.4);
+}
+
+.btn-epic-cta:hover::after {
+  left: 100%;
+  transition: left 0.7s ease-in-out;
+}
+
+.btn-epic-cta:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.btn-epic-cta:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.btn-epic-cta.gold {
+  background: linear-gradient(135deg, #f59e0b 0%, #b45309 100%);
+  box-shadow: 0 10px 20px -5px rgba(245, 158, 11, 0.4);
+}
+
+.btn-epic-cta.gold:hover {
+  box-shadow: 0 20px 40px -10px rgba(245, 158, 11, 0.6);
+}
+
+/* SHOP SYSTEM BUTTONS */
+.btn-shop-buy {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #000;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 900;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+  width: 100%;
+}
+
+.btn-shop-buy:hover:not(:disabled) {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 10px 25px rgba(245, 158, 11, 0.5);
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+}
+
+.btn-shop-buy:disabled {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+  border: 1px solid var(--glass-border);
+}
+
+.btn-shop-locked {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: #f87171 !important;
+  border: 1px dashed #ef4444 !important;
+  cursor: not-allowed;
+  box-shadow: none !important;
+}
+
+.btn-shop-equip {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 900;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+}
+
+.btn-shop-equip:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5);
+}
+
+.btn-shop-active {
+  background: rgba(251, 191, 36, 0.15);
+  color: #fbbf24;
+  border: 2px solid #fbbf24;
+  padding: 0.8rem 1.5rem;
+  border-radius: 10px;
+  font-weight: 900;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  cursor: default;
+  animation: pulse-gold-border 2s infinite;
+}
+
+@keyframes pulse-gold-border {
+  0%, 100% { box-shadow: 0 0 5px rgba(251, 191, 36, 0.3); border-color: rgba(251, 191, 36, 0.6); }
+  50% { box-shadow: 0 0 20px rgba(251, 191, 36, 0.6); border-color: rgba(251, 191, 36, 1); }
+}
+
+.btn-shop-free {
+  background: linear-gradient(135deg, #facc15 0%, #eab308 100%) !important;
+  color: #000 !important;
+  animation: heartbeat 1.5s infinite;
+  font-weight: 950 !important;
+}
+
+@keyframes heartbeat {
+  0% { transform: scale(1); }
+  10% { transform: scale(1.05); }
+  20% { transform: scale(1); }
+  30% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
 .enemy-item-admin {
   display: flex;
   align-items: center;
@@ -737,6 +908,213 @@ body {
   cursor: pointer;
   transition: all 0.3s;
   border-bottom: 1px solid var(--glass-border);
+}
+
+/* EPIC CLAIM REWARD BUTTON */
+.btn-claim-epic {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #06b6d4 0%, #8b5cf6 50%, #d946ef 100%);
+  background-size: 200% auto;
+  color: #fff;
+  border: none;
+  padding: 1.2rem 3rem;
+  font-size: 1.4rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.4), 
+              0 0 50px rgba(139, 92, 246, 0.2);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  width: 100%;
+  max-width: 400px;
+  margin: 2rem auto;
+}
+
+.btn-claim-epic:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 15px 35px rgba(139, 92, 246, 0.6), 
+              0 0 60px rgba(139, 92, 246, 0.4);
+  filter: brightness(1.2);
+  background-position: right center;
+}
+
+.btn-claim-epic:active {
+  transform: translateY(2px) scale(0.98);
+}
+
+.btn-claim-epic::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  transition: none;
+  animation: shine-sweep 3s infinite;
+}
+
+@keyframes shine-sweep {
+  0% { left: -150%; }
+  30% { left: 150%; }
+  100% { left: 150%; }
+}
+
+/* DANGER AND CANCEL EPIC BUTTONS */
+.btn-danger-epic {
+  background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%);
+  color: white;
+  border: none;
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  text-transform: uppercase;
+}
+
+.btn-danger-epic:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.5);
+  filter: brightness(1.2);
+  animation: shake-danger 0.2s infinite ease-in-out;
+}
+
+.btn-cancel-epic {
+  background: rgba(255, 255, 255, 0.05);
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0.8rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+}
+
+.btn-cancel-epic:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+@keyframes shake-danger {
+  0%, 100% { transform: scale(1.05) rotate(0deg); }
+  25% { transform: scale(1.05) rotate(-1deg); }
+  75% { transform: scale(1.05) rotate(1deg); }
+}
+
+/* PREMIUM 3D COIN STYLES */
+.coin-container {
+  width: 220px;
+  height: 220px;
+  perspective: 1500px;
+  margin-bottom: 3rem;
+  filter: drop-shadow(0 20px 40px rgba(0,0,0,0.6));
+}
+
+.coin-flip-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform 3.5s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+.coin-face {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  backface-visibility: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 15px solid #92400e;
+  box-shadow: 
+    inset 0 0 50px rgba(0,0,0,0.4),
+    inset 0 0 10px rgba(255,255,255,0.4),
+    inset 0 0 5px rgba(0,0,0,0.8);
+  overflow: hidden;
+}
+
+.face-front {
+  background: radial-gradient(circle at 35% 35%, #fcd34d 0%, #d97706 60%, #92400e 100%);
+  color: white;
+  border-color: #b45309;
+}
+
+.face-back {
+  background: radial-gradient(circle at 35% 35%, #e2e8f0 0%, #64748b 60%, #1e293b 100%);
+  color: white;
+  transform: rotateY(180deg);
+  border-color: #475569;
+}
+
+.coin-shine {
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(135deg, 
+    transparent 0%, 
+    transparent 45%, 
+    rgba(255,255,255,0.4) 50%, 
+    transparent 55%, 
+    transparent 100%);
+  animation: coin-glint 3s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes coin-glint {
+  0% { transform: rotate(0deg) translate(-10%, -10%); }
+  100% { transform: rotate(360deg) translate(-10%, -10%); }
+}
+
+.coin-symbol {
+  font-size: 5rem;
+  margin-bottom: 0.2rem;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5));
+  z-index: 2;
+}
+
+.coin-label {
+  font-size: 1.1rem;
+  font-weight: 950;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  background: rgba(0,0,0,0.2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  z-index: 2;
 }
 
 .enemy-item-admin:hover,

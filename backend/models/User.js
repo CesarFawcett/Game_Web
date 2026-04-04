@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
   email: { type: String, required: false, unique: true },
   password: { type: String, required: true },
   role: { type: String, enum: ['admin', 'player'], default: 'player' },
-  credits: { type: Number, default: 2500 },
+  credits: { type: Number, default: 6000 },
   inventory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
   discoveredCards: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],
   deck: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Card' }],

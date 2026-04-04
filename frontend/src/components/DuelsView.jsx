@@ -97,10 +97,12 @@ const DuelsView = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
-                            className="arcade-btn"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            className="btn-epic-cta gold"
                             onClick={toggleSearch}
                             disabled={!cards || cards.length === 0 || !deck || deck.length === 0}
-                            style={{ padding: '1.2rem 3rem', fontSize: '1.2rem', opacity: (!cards || cards.length === 0 || !deck || deck.length === 0) ? 0.5 : 1 }}
+                            style={{ padding: '1.2rem 3rem', fontSize: '1.2rem'}}
                         >
                             {(!cards || cards.length === 0 || !deck || deck.length === 0) ? "CARGANDO DATOS..." : "BUSCAR OPONENTE"}
                         </motion.button>

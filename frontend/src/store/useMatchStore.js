@@ -25,6 +25,7 @@ const useMatchStore = create((set, get) => ({
   firstTurnRole: null,
   splashText: '¡Duelo Iniciado!',
   hoveredCard: null,
+  directAttacksThisTurn: 0,
 
 
   myRole: 'player1',
@@ -132,8 +133,9 @@ const useMatchStore = create((set, get) => ({
       p1Graveyard: [], p2Graveyard: [],
       isProcessing: false,
       placedThisTurn: 0,
+      directAttacksThisTurn: 0,
       revealTimer: 0, rpsPhase: false,
-      firstTurnRole: null
+      firstTurnRole: 'player1'
     });
 
     setTimeout(() => set({ splashText: null }), 1500);
@@ -193,7 +195,8 @@ const useMatchStore = create((set, get) => ({
       winner: null,
       splashText: '¡Buscando determinar quién empieza!',
       isProcessing: false,
-      firstTurnRole: null
+      firstTurnRole: null,
+      directAttacksThisTurn: 0
     });
 
     console.log(`[initPvPGame] Hand set for ${isP1 ? 'p1' : 'p2'}:`, shuffled.slice(0, 3).length, "cards.");
@@ -254,6 +257,7 @@ const useMatchStore = create((set, get) => ({
     set(prev => ({
       [prefix + 'Field']: prev[prefix + 'Field'].map(c => c ? { ...c, attacksThisTurn: 0, frozen: Math.max(0, (c.frozen || 0) - 1) } : null),
       placedThisTurn: 0,
+      directAttacksThisTurn: 0,
       phase: 'MAIN 1'
     }));
 
@@ -404,6 +408,7 @@ const useMatchStore = create((set, get) => ({
   },
 
   executeAttack: async (attackerIdx, targetIdx, isRemote = false) => {
+    if (get().winner) return;
     const s = get();
 
     const isFirstTurnOfGame = s.turnCount === 1 && s.turn === s.firstTurnRole;
@@ -417,6 +422,19 @@ const useMatchStore = create((set, get) => ({
     const defenderRole = attackerRole === 'player1' ? 'player2' : 'player1';
     const aPrefix = attackerRole === 'player1' ? 'p1' : 'p2';
     const dPrefix = defenderRole === 'player1' ? 'p1' : 'p2';
+
+    const attackerCard = s[aPrefix + 'Field'][attackerIdx];
+    if (!attackerCard) {
+      set({ isProcessing: false, selectedAttackerIdx: null });
+      return;
+    }
+
+    const maxAllowedAttacks = attackerCard.ability === 'Doble Ataque' ? 2 : 1;
+    if (attackerCard.attacksThisTurn >= maxAllowedAttacks) {
+      console.warn(`[useMatchStore] Bloqueado: ${attackerCard.name} ya alcanzó su límite de ataques (${maxAllowedAttacks}).`);
+      set({ isProcessing: false, selectedAttackerIdx: null });
+      return;
+    }
 
     set({
       isProcessing: true,
@@ -450,8 +468,15 @@ const useMatchStore = create((set, get) => ({
     if (!isRemote) get().emitAction('EXECUTE_ATTACK', { attackerIdx, targetIdx });
 
     if (!target) {
+      const emptySlots = dField.filter(slot => !slot).length;
       if (dField.every(slot => slot)) {
         get().addLog("¡No puedes atacar directo si el campo está lleno!");
+        set({ isProcessing: false, attackingIdx: null, selectedAttackerIdx: null, defendingIdx: null });
+        return;
+      }
+      
+      if (state.directAttacksThisTurn >= emptySlots) {
+        get().addLog(`¡Límite de ataques directos alcanzado (${emptySlots})!`);
         set({ isProcessing: false, attackingIdx: null, selectedAttackerIdx: null, defendingIdx: null });
         return;
       }
@@ -463,7 +488,8 @@ const useMatchStore = create((set, get) => ({
         }
         return {
           [dPrefix + 'HP']: Math.max(0, p[dPrefix + 'HP'] - attacker.attack),
-          [aPrefix + 'Field']: nextF
+          [aPrefix + 'Field']: nextF,
+          directAttacksThisTurn: p.directAttacksThisTurn + 1
         };
       });
       get().addLog(`${attackerRole === 'player1' ? 'P1' : 'P2'} ataca directo con ${attacker.name} infligiendo ${attacker.attack} daño.`);
@@ -678,6 +704,7 @@ const useMatchStore = create((set, get) => ({
       const maxAttacks = card.ability === 'Doble Ataque' ? 2 : 1;
 
       for (let atkCount = 0; atkCount < maxAttacks; atkCount++) {
+        if (get().winner) break;
         card = get().p2Field[i];
         if (!card) break;
 
@@ -686,17 +713,21 @@ const useMatchStore = create((set, get) => ({
         const hasSpaces = playerField.some(slot => !slot);
         const monsterTargets = playerField.map((c, idx) => c ? idx : null).filter(idx => idx !== null);
 
+        const emptySlots = 3 - monstersOnField;
+        const directLimitReached = get().directAttacksThisTurn >= emptySlots;
+
         let targetIdx = -1;
 
-        // Regla: Si no hay espacios vacíos (3 monstruos), DEBE atacar monstruo
-        if (!hasSpaces) {
+        // Regla: Si no hay espacios vacíos (3 monstruos) o se alcanzó el límite de ataques directos, DEBE atacar monstruo
+        if (!hasSpaces || directLimitReached) {
           if (monsterTargets.length > 0) {
             targetIdx = monsterTargets[Math.floor(Math.random() * monsterTargets.length)];
           } else {
-
-            targetIdx = 0;
+            // No hay monstruos objetivos y no puede atacar directo
+            break;
           }
         } else {
+          // Si hay espacios y no se alcanzó el límite, elige aleatoriamente
           if (monsterTargets.length > 0 && Math.random() > 0.6) {
             targetIdx = monsterTargets[Math.floor(Math.random() * monsterTargets.length)];
           } else {
@@ -705,8 +736,10 @@ const useMatchStore = create((set, get) => ({
         }
 
         await get().executeAttack(i, targetIdx, true);
+        if (get().winner) break;
         await new Promise(r => setTimeout(r, 800));
       }
+      if (get().winner) break;
     }
 
     await new Promise(r => setTimeout(r, 500));
@@ -740,6 +773,7 @@ const useMatchStore = create((set, get) => ({
       attackingIdx: null,
       defendingIdx: null,
       placedThisTurn: 0,
+      directAttacksThisTurn: 0,
       turnCount: 1,
       turn: 'player1',
       firstTurnRole: null

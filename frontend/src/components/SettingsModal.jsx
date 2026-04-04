@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   X, Volume2, VolumeX, Sliders, User as UserIcon, 
-  Image as ImageIcon, Grid, CreditCard, Layout 
+  ImageIcon, Grid, CreditCard, Layout, Trash2 
 } from 'lucide-react';
 import { getVolume, setVolume, toggleMute, getMuteStatus } from '../utils/sound';
 import axios from 'axios';
@@ -302,12 +302,12 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
                 <p style={{ color: '#ef4444', fontWeight: 900, fontSize: '0.8rem', marginBottom: '1.5rem' }}>
                   ¿ESTÁS COMPLETAMENTE SEGURO?
                 </p>
-                <div style={{ display: 'flex', gap: '1rem' }}>
-                  <button className="arcade-btn small-btn red-btn" onClick={handleDeleteAccount} disabled={isDeleting} style={{ flex: 1 }}>
-                    {isDeleting ? 'ELIMINANDO...' : 'SÍ, BORRAR'}
+                <div style={{ display: 'flex', gap: '1.2rem', marginTop: '1rem' }}>
+                  <button className="btn-danger-epic" onClick={handleDeleteAccount} disabled={isDeleting} style={{ flex: 1.5 }}>
+                    {isDeleting ? 'ELIMINANDO...' : <><Trash2 size={18} /> SÍ, BORRAR</>}
                   </button>
-                  <button className="arcade-btn small-btn black-btn" onClick={() => setShowConfirmDelete(false)} style={{ flex: 1 }}>
-                    CANCELAR
+                  <button className="btn-cancel-epic" onClick={() => setShowConfirmDelete(false)} style={{ flex: 1 }}>
+                    <X size={18} /> CANCELAR
                   </button>
                 </div>
               </div>

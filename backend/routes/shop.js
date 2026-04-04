@@ -25,7 +25,7 @@ router.post('/register', async (req, res) => {
       username,
       email,
       password, // Plain text as requested
-      credits: 2500,
+      credits: 6000,
       freePacksCount: 4
     });
 

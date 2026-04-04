@@ -1303,6 +1303,48 @@
   animation: pulse-red 2s infinite;
 }
 
+/* Responsive Bet Layout for Mobile */
+@media (max-width: 768px) {
+  .bet-reveal-card {
+    padding: 1.5rem 1rem;
+    max-width: 95vw;
+  }
+  .reveal-header {
+    margin-bottom: 1rem;
+    padding: 0.4rem 1rem;
+  }
+  .reveal-timer {
+    font-size: 1rem;
+  }
+  .bet-reveal-card h2.gradient-text {
+    font-size: 1.4rem !important;
+  }
+  .bets-display {
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  .bet-item {
+    gap: 0.5rem;
+  }
+  .bet-item p {
+    font-size: 0.6rem;
+    letter-spacing: 1px;
+  }
+  .bet-img {
+    width: 85px; /* Significantly smaller for mobile */
+    border-width: 1px;
+  }
+  .bets-display svg.text-gold {
+    width: 32px;
+    height: 32px;
+  }
+  .bet-warning {
+    font-size: 0.7rem;
+    margin-top: 1rem;
+    letter-spacing: 1px;
+  }
+}
+
 /* RPS Specific */
 .rps-card {
   max-width: 500px;

@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
 import SortButton from './SortButton';
 import CardItem from './CardItem';
+import { Info } from 'lucide-react';
+import AbilitiesModal from './AbilitiesModal';
 
 function CardsView({ cards, inventory, deck, onAdd, onRemove, onSell, baseUrl }) {
   const [sortKey, setSortKey] = useState('none'); 
+  const [isAbilitiesOpen, setIsAbilitiesOpen] = useState(false);
 
   const cardCounts = inventory.reduce((acc, id) => {
     acc[id] = (acc[id] || 0) + 1;
@@ -27,8 +30,18 @@ function CardsView({ cards, inventory, deck, onAdd, onRemove, onSell, baseUrl })
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-        <h2>Mi Colección Personal ({inventory.length} Cartas)</h2>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <h2 style={{ margin: 0 }}>Mi Colección ({inventory.length} Cartas)</h2>
+          <button 
+            onClick={() => setIsAbilitiesOpen(true)}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'rgba(251, 191, 36, 0.1)', border: '2px solid var(--accent-gold)', color: 'var(--accent-gold)', padding: '0.4rem 1rem', borderRadius: '30px', fontWeight: 900, cursor: 'pointer', fontSize: '0.9rem', transition: 'all 0.2s' }}
+            onMouseEnter={e => { e.target.style.background = 'var(--accent-gold)'; e.target.style.color = '#000'; }}
+            onMouseLeave={e => { e.target.style.background = 'rgba(251, 191, 36, 0.1)'; e.target.style.color = 'var(--accent-gold)'; }}
+          >
+            <Info size={16} /> INFO HABILIDADES
+          </button>
+        </div>
         <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 800 }}>ORDENAR POR:</span>
           <div style={{ display: 'flex', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', padding: '4px' }}>
@@ -58,6 +71,11 @@ function CardsView({ cards, inventory, deck, onAdd, onRemove, onSell, baseUrl })
           </div>
         )}
       </div>
+
+      <AbilitiesModal 
+        isOpen={isAbilitiesOpen} 
+        onClose={() => setIsAbilitiesOpen(false)} 
+      />
     </div>
   );
 }

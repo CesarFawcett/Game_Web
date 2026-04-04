@@ -419,18 +419,25 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfi
         </AnimatePresence>
 
         <AnimatePresence>
-          {store.hoveredCard && (
-            <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }} className="card-preview-sidebar">
-               <div className="preview-container glass-panel">
-                  <div className="preview-card-wrap"><CardEntity card={store.hoveredCard} baseUrl={baseUrl} /></div>
-                  <div className="preview-details">
-                     <h2 className="preview-name">{store.hoveredCard.name}</h2>
-                     <p className="preview-desc">{store.hoveredCard.description}</p>
-                     <div className="preview-stats-row"><div className="preview-stat-pill atk">⚔️ {store.hoveredCard.attack}</div><div className="preview-stat-pill def">🛡️ {store.hoveredCard.defense}</div></div>
-                  </div>
-               </div>
-            </motion.div>
-          )}
+          {(store.hoveredCard || (store.selectedHandIdx !== null && pPOV.hand[store.selectedHandIdx])) && (() => {
+            const previewCard = store.hoveredCard || pPOV.hand[store.selectedHandIdx];
+            return (
+              <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }} className="card-preview-sidebar">
+                 <div className="preview-container glass-panel">
+                    <div className="preview-card-wrap"><CardEntity card={previewCard} baseUrl={baseUrl} /></div>
+                    <div className="preview-details">
+                       <h2 className="preview-name">{previewCard.name}</h2>
+                       <p className="preview-desc" style={{ color: 'var(--accent-gold)', marginBottom: '0.5rem', fontWeight: 'bold' }}>{previewCard.abilityName || previewCard.ability}</p>
+                       <p className="preview-desc">{previewCard.description}</p>
+                       <div className="preview-stats-row">
+                         <div className="preview-stat-pill atk">⚔️ {previewCard.attack}</div>
+                         <div className="preview-stat-pill def">🛡️ {previewCard.defense}</div>
+                       </div>
+                    </div>
+                 </div>
+              </motion.div>
+            );
+          })()}
         </AnimatePresence>
       </div>
     </div>

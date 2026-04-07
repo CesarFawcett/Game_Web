@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Plus, Play, User as UserIcon, Shield, Archive, Layout, Trophy, Flame, Settings } from 'lucide-react';
+import { Plus, Play, User as UserIcon, Shield, Archive, Layout, Trophy, Flame, Settings, Zap, EyeOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from './store'; // Zustand
 import useMatchStore from './store/useMatchStore';
@@ -23,6 +23,8 @@ import SettingsModal from './components/SettingsModal';
 import MissionsModal from './components/Missions/MissionsModal';
 import ComingSoon from './components/ComingSoon';
 import OnboardingModal from './components/OnboardingModal'; // NEW
+import FusionsView from './components/FusionsView';
+import BlackMarketView from './components/BlackMarketView';
 import { startAmbient, stopAmbient } from './utils/sound';
 import logoG from './utils/img/IconoG.png';
 
@@ -65,7 +67,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (user && !activeDuel) startAmbient();
+    if (user && !activeDuel) startAmbient('menu');
+    else if (user && activeDuel) startAmbient('battle');
     else stopAmbient();
   }, [user, activeDuel]);
 
@@ -88,7 +91,6 @@ function App() {
     // Special Trigger for Shop Onboarding after registration
     if (user.justRegistered && !seenOnboarding.includes('welcome')) {
       setOnboardingTarget({ id: 'welcome', msg: messages['welcome'] });
-      navigate('/shop'); // Redirect to shop immediately
       // Remove flag to avoid re-triggering redirect
       const cleanUser = { ...user };
       delete cleanUser.justRegistered;
@@ -125,7 +127,7 @@ function App() {
   const onLogin = (userData) => {
     login(userData);
     if (userData.justRegistered) {
-      // Logic handled by useEffect above
+      navigate('/shop');
     } else {
       navigate('/collection');
     }
@@ -227,6 +229,8 @@ function App() {
             <TabItem id="ranking" label="Ranking" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Trophy size={18} />} />
             <TabItem id="story" label="Historia" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Play size={18} />} />
             <TabItem id="album" label="Álbum" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Layout size={18} />} />
+            <TabItem id="fusions" label="Fusiones" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Zap size={18} />} />
+            <TabItem id="blackmarket" label="Oculto" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<EyeOff size={18} />} />
             <TabItem id="shop" label="Compras" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Plus size={18} />} />
           </nav>
         )}
@@ -266,6 +270,16 @@ function App() {
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                   {/* ShopView sets updated user data here to Zustand */}
                   <ShopView user={user} setUser={(u) => useStore.getState().login(u)} cards={cards} onUpdate={() => fetchData(API_URL)} baseUrl={BASE_URL} isOnboarding={user.justRegistered} />
+                </motion.div>
+              } />
+              <Route path="/fusions" element={
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <FusionsView />
+                </motion.div>
+              } />
+              <Route path="/blackmarket" element={
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                  <BlackMarketView />
                 </motion.div>
               } />
               <Route path="/story" element={

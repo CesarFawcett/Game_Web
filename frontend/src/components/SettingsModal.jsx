@@ -138,15 +138,15 @@ function SettingsModal({ onClose, user, setUser, baseUrl, onLogout }) {
                 background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.6rem', fontWeight: 900, color: 'var(--text-muted)', textAlign: 'center'
             }}
         >FONDO ESTÁNDAR</div>
-        {boards.filter(b => user.ownedBoards?.includes(b._id)).map(b => (
+        {boards.filter(b => user.ownedBoards?.includes(b._id) && b.fieldImageUrl).map(b => (
             <div
                 key={`field-img-${b._id}`}
-                onClick={() => handleEquipBoard({ fieldImageUrl: b.fieldImageUrl || b.imageUrl })}
+                onClick={() => handleEquipBoard({ fieldImageUrl: b.fieldImageUrl })}
                 style={{
                     minWidth: '120px', height: '70px', cursor: 'pointer', borderRadius: '12px',
-                    border: user.equippedFieldImage === (b.fieldImageUrl || b.imageUrl) ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
-                    boxShadow: user.equippedFieldImage === (b.fieldImageUrl || b.imageUrl) ? '0 0 15px rgba(212,175,55,0.3)' : 'none',
-                    background: `url(${(b.fieldImageUrl || b.imageUrl)?.startsWith('http') ? '' : baseUrl}${b.fieldImageUrl || b.imageUrl}) center/cover`,
+                    border: user.equippedFieldImage === b.fieldImageUrl ? '3px solid var(--accent-gold)' : '2px solid var(--glass-border)',
+                    boxShadow: user.equippedFieldImage === b.fieldImageUrl ? '0 0 15px rgba(212,175,55,0.3)' : 'none',
+                    background: `url(${b.fieldImageUrl?.startsWith('http') ? '' : baseUrl}${b.fieldImageUrl}) center/cover`,
                     transition: 'all 0.2s ease'
                 }}
                 title={b.name}

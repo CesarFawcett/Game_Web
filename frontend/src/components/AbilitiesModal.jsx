@@ -88,7 +88,7 @@ const AbilitiesModal = ({ isOpen, onClose }) => {
               ))}
             </div>
 
-            <button className="btn-epic-cta" style={{ marginTop: '2rem', width: '100%' }} onClick={onClose}> ENTENDIDO </button>
+            <button className="btn-entendido" style={{ marginTop: '2rem', width: '100%' }} onClick={onClose}> <Shield size={18} /> ENTENDIDO </button>
           </motion.div>
         </motion.div>
       )}

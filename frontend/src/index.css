@@ -385,25 +385,42 @@ body {
 }
 
 .chest-card {
-  background: var(--glass);
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
   border: 1px solid var(--glass-border);
-  padding: 2rem;
-  border-radius: 24px;
+  padding: 2.5rem 2rem;
+  border-radius: 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1.5rem;
-  transition: all 0.3s;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+.chest-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 120px;
+  background: radial-gradient(circle at top, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+  pointer-events: none;
 }
 
 .chest-card:hover:not(.disabled) {
-  border-color: var(--accent-gold);
-  transform: translateY(-5px);
+  border-color: rgba(212, 175, 55, 0.6);
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 40px rgba(212, 175, 55, 0.2);
 }
 
 .chest-card.disabled {
   opacity: 0.6;
   cursor: not-allowed;
+  filter: grayscale(80%);
+}
+
+.chest-container {
+  perspective: 1000px;
 }
 
 /* Almanac & Other Styles */
@@ -426,27 +443,36 @@ body {
 }
 
 .chest-visual {
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 50px rgba(99, 102, 241, 0.4);
-  border: 4px solid var(--accent-gold);
+  border-radius: 12px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.8), inset 0 0 15px rgba(255,255,255,0.4);
+  border: 2px outset rgba(212, 175, 55, 0.8);
   position: relative;
   overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform-style: preserve-3d;
+  background-color: #111;
 }
 
 .chest-visual::after {
   content: '';
   position: absolute;
-  top: 50%;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: var(--accent-gold);
+  inset: 0;
+  background: linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.6) 45%, rgba(212,175,55,0.4) 50%, transparent 55%);
+  background-size: 200% 200%;
+  background-position: 100% 100%;
+  z-index: 10;
+  pointer-events: none;
+  transition: background-position 0.6s ease;
+}
+
+.chest-card:hover:not(.disabled) .chest-visual::after {
+  background-position: 0% 0%;
+}
+
+.chest-card:hover:not(.disabled) .chest-visual {
+  transform: scale(1.08) rotateX(10deg) translateY(-10px);
+  box-shadow: 0 30px 50px rgba(0,0,0,0.9), 0 0 40px rgba(212, 175, 55, 0.6), inset 0 0 20px rgba(255,255,255,0.6);
+  border: 2px solid #fff;
 }
 
 .reward-overlay {
@@ -1939,4 +1965,49 @@ body {
 .btn-close-modal:hover {
   background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
+}
+
+/* BUTON ENTENDIDO - CYBERPUNK NEON */
+.btn-entendido {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #0d9488 0%, #0369a1 100%);
+  color: #fff;
+  border: 1px solid #22d3ee;
+  padding: 0.8rem 2.5rem;
+  font-size: 1rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 0 15px rgba(34, 211, 238, 0.4), inset 0 0 10px rgba(34, 211, 238, 0.2);
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.btn-entendido:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 0 25px rgba(34, 211, 238, 0.7), inset 0 0 15px rgba(34, 211, 238, 0.4);
+  background: linear-gradient(135deg, #14b8a6 0%, #0284c7 100%);
+}
+
+.btn-entendido:active {
+  transform: translateY(2px) scale(0.98);
+  box-shadow: 0 0 10px rgba(34, 211, 238, 0.3);
+}
+
+.btn-entendido::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -150%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  animation: shine-sweep 3s infinite;
 }

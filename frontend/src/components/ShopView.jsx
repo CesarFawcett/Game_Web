@@ -367,8 +367,8 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl, isOnboarding }) {
                 })}
               </div>
 
-              <button className="btn-shop-buy" style={{ marginTop: '2rem', width: 'auto', alignSelf: 'center', padding: '1rem 3rem' }} onClick={() => setPreviewPack(null)}>
-                ENTENDIDO
+              <button className="btn-entendido" style={{ marginTop: '2rem', width: 'auto', alignSelf: 'center' }} onClick={() => setPreviewPack(null)}>
+                <Check size={18} /> ENTENDIDO
               </button>
             </motion.div>
           </motion.div>
@@ -388,7 +388,7 @@ function ChestCard({ title, price, description, onPurchase, onPreview, loading, 
             <Eye size={18} />
          </button>
       </div>
-      <div className="chest-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '180px' }}>
+      <div className="chest-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '230px' }}>
         <motion.div 
           className="chest-visual"
           animate={isOpening ? { 
@@ -397,11 +397,9 @@ function ChestCard({ title, price, description, onPurchase, onPreview, loading, 
             transition: { duration: 1.5, repeat: Infinity }
           } : {}}
           style={{
-             width: '120px', 
-             height: '168px', 
-             background: `url(${imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http') ? '' : baseUrl}${imageUrl}) center/cover`,
-             borderRadius: '8px',
-             boxShadow: '0 4px 15px rgba(0,0,0,0.5)'
+             width: '140px', 
+             height: '210px', 
+             background: `url(${imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http') ? '' : baseUrl}${imageUrl}) center/cover`
           }}
         />
       </div>

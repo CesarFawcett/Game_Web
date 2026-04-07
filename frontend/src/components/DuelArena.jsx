@@ -189,9 +189,7 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfi
     : {};
   const playerFieldTexture = pPOV.data?.equippedTexture
     ? { backgroundImage: `url(${pPOV.data.equippedTexture && typeof pPOV.data.equippedTexture === 'string' && pPOV.data.equippedTexture.startsWith('http') ? '' : baseUrl}${pPOV.data.equippedTexture})`, backgroundSize: 'cover' }
-    : (pPOV.data?.equippedBoard 
-      ? { backgroundImage: `url(${pPOV.data.equippedBoard && typeof pPOV.data.equippedBoard === 'string' && pPOV.data.equippedBoard.startsWith('http') ? '' : baseUrl}${pPOV.data.equippedBoard})`, backgroundSize: 'cover' } 
-      : {});
+    : {};
 
   const renderEnemySide = (profileProps, deckLimit, hp) => {
     const traps = ePOV.traps;
@@ -270,11 +268,9 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfi
 
   const arenaBgStyle = pPOV.data?.equippedFieldImage
     ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${pPOV.data.equippedFieldImage && typeof pPOV.data.equippedFieldImage === 'string' && pPOV.data.equippedFieldImage.startsWith('http') ? '' : baseUrl}${pPOV.data.equippedFieldImage}) center/cover no-repeat` }
-    : (pPOV.data?.equippedBoard
-      ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${pPOV.data.equippedBoard && typeof pPOV.data.equippedBoard === 'string' && pPOV.data.equippedBoard.startsWith('http') ? '' : baseUrl}${pPOV.data.equippedBoard}) center/cover no-repeat` }
-      : (ePOV.data?.fieldImageUrl
-        ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${ePOV.data.fieldImageUrl && typeof ePOV.data.fieldImageUrl === 'string' && ePOV.data.fieldImageUrl.startsWith('http') ? '' : baseUrl}${ePOV.data.fieldImageUrl}) center/cover no-repeat` }
-        : {}));
+    : (ePOV.data?.fieldImageUrl
+      ? { background: `linear-gradient(to bottom, rgba(0,0,0,0.4), rgba(0,0,0,0.7)), url(${ePOV.data.fieldImageUrl && typeof ePOV.data.fieldImageUrl === 'string' && ePOV.data.fieldImageUrl.startsWith('http') ? '' : baseUrl}${ePOV.data.fieldImageUrl}) center/cover no-repeat` }
+      : {});
 
   return (
     <div className={`duel-overlay ${store.isProcessing ? 'screenshake-active' : ''}`} style={arenaBgStyle}>
@@ -440,7 +436,7 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfi
         </AnimatePresence>
 
         <AnimatePresence>
-          {store.winner && !coinFlipActive && (
+          {store.winner && !coinFlipActive && (store.winner === 'DERROTA' || store.isPvP) && (
             <div className="winner-overlay" style={{ zIndex: 2500 }}>
               <div className="winner-card glass-panel">
                 <h1 className={store.winner === 'VICTORIA' ? 'victory-text' : 'defeat-text'}>{store.winner}</h1>

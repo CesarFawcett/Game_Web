@@ -348,7 +348,7 @@ const useMatchStore = create((set, get) => ({
 
     if (card.type === 'Spell') {
       if (!targetSlot) return get().addLog("Selecciona un monstruo aliado.");
-      playSound('place');
+      playSound('place_spell');
       set(prev => {
         const nextF = [...prev[prefix + 'Field']];
         nextF[slotIdx] = { ...targetSlot, attack: targetSlot.attack + card.attack, defense: targetSlot.defense + card.defense };
@@ -359,7 +359,7 @@ const useMatchStore = create((set, get) => ({
     }
 
     if (targetSlot) return get().addLog("Slot ocupado.");
-    playSound('place');
+    playSound('place_monster');
     set(prev => {
       const nextF = [...prev[prefix + 'Field']];
       nextF[slotIdx] = { ...card, attacksThisTurn: 0, frozen: 0 };
@@ -376,7 +376,7 @@ const useMatchStore = create((set, get) => ({
     if (!card || card.type !== 'Trap') return;
     if (s[prefix + 'Traps'].length >= 3) return get().addLog("Zona de trampas llena.");
 
-    playSound('place');
+    playSound('place_trap');
     set(prev => ({
       [prefix + 'Traps']: [...prev[prefix + 'Traps'], card],
       [prefix + 'Hand']: prev[prefix + 'Hand'].filter((_, i) => i !== handIdx),
@@ -673,6 +673,7 @@ const useMatchStore = create((set, get) => ({
       const card = newHand[i];
       if (card && card.type === 'Trap' && newTraps.length < 3) {
         newTraps.push(newHand.splice(i, 1)[0]);
+        playSound('place_trap');
         get().addLog(`Enemigo coloca una Trampa.`);
       }
     }
@@ -686,7 +687,7 @@ const useMatchStore = create((set, get) => ({
       if (monsterIdx === -1) break;
 
       placed++;
-      playSound('place');
+      playSound('place_monster');
       const monster = newHand.splice(monsterIdx, 1)[0];
       newField[emptySlot] = { ...monster, attacksThisTurn: 0, frozen: 0 };
       get().addLog(`Enemigo invoca a ${monster.name}`);

@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Play, Lock, X, Gift } from 'lucide-react';
+import { Shield, Play, Lock, X, Gift, Info } from 'lucide-react';
 
 function StoryView({ user, baseUrl, onStartDuel }) {
   const [enemies, setEnemies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedLootEnemy, setSelectedLootEnemy] = useState(null);
+  const [showStoryInfo, setShowStoryInfo] = useState(false);
 
   useEffect(() => {
     fetchEnemies();
@@ -84,9 +85,18 @@ function StoryView({ user, baseUrl, onStartDuel }) {
 
   return (
     <div className="story-container">
-      <header style={{ textAlign: 'center', marginBottom: '3rem' }}>
-        <h2 className="gradient-text" style={{ fontSize: '3rem', fontWeight: 900 }}>MODO HISTORIA: EL CAMINO DEL DUELISTA</h2>
-        <p style={{ color: 'var(--text-muted)' }}>Derrota a los guardianes de cada rango para alcanzar la gloria máxima.</p>
+      <header style={{ textAlign: 'center', marginBottom: '3rem', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', justifyContent: 'center', width: '100%' }}>
+            <h2 className="gradient-text" style={{ fontSize: '3rem', fontWeight: 900, margin: 0 }}>MODO HISTORIA: EL CAMINO DEL DUELISTA</h2>
+            <button 
+              onClick={() => setShowStoryInfo(true)}
+              className="btn-view-contents"
+              title="Manual de Combate"
+            >
+              <Info className="text-gold" size={24} />
+            </button>
+        </div>
+        <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Derrota a los guardianes de cada rango para alcanzar la gloria máxima.</p>
       </header>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' }}>
@@ -315,6 +325,81 @@ function StoryView({ user, baseUrl, onStartDuel }) {
                     </div>
                   ))}
                 </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* COMBAT MANUAL MODAL */}
+      <AnimatePresence>
+        {showStoryInfo && (
+          <motion.div 
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="modal-overlay"
+            style={{ zIndex: 2000, padding: '1rem' }}
+            onClick={() => setShowStoryInfo(false)}
+          >
+            <motion.div 
+              initial={{ scale: 0.9, y: 50 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 50 }}
+              className="glass-panel"
+              onClick={(e) => e.stopPropagation()}
+              style={{ 
+                maxWidth: '700px', 
+                width: '100%', 
+                maxHeight: '80vh', 
+                display: 'flex', 
+                flexDirection: 'column', 
+                padding: '0',
+                border: '1px solid var(--primary)'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem', borderBottom: '1px solid rgba(99, 102, 241, 0.2)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <Info className="text-primary" size={28} />
+                  <h3 className="gradient-text" style={{ margin: 0, letterSpacing: '2px', fontWeight: 900 }}>MANUAL DE COMBATE</h3>
+                </div>
+                <button className="btn-close-modal" onClick={() => setShowStoryInfo(false)}><X size={24} /></button>
+              </div>
+
+              <div className="scrollbar" style={{ padding: '1.5rem', overflowY: 'auto', flex: 1, lineHeight: '1.6' }}>
+                <h4 style={{ color: 'var(--accent-gold)', marginBottom: '1rem', fontSize: '1.3rem', fontWeight: 800 }}>Mecánicas contra el Jefe</h4>
+                <p style={{ marginBottom: '1rem', color: 'var(--text-main)' }}>
+                  En el modo historia, te enfrentarás al Héroe enemigo. <strong>El objetivo es reducir la vitalidad (HP) del Héroe enemigo a 0.</strong> 
+                </p>
+                <p style={{ marginBottom: '1.5rem', color: 'var(--text-muted)' }}>
+                  Cada jefe tiene un nivel de defensa que bloquea ataques directos si hay cartas en su campo. Usa tus monstruos y trampas sabiamente. El HP del jefe se calcula en base a la defensa total de su mazo. Si derrotas una carta, el daño excedente <strong style={{color: 'var(--text-main)'}}>no se transfiere</strong> al jefe al menos que uses habilidades perforantes. Para atacarlo directo, su campo debe estar vacío.
+                </p>
+
+                <h4 style={{ color: '#38bdf8', marginBottom: '1rem', fontSize: '1.3rem', fontWeight: 800, marginTop: '2rem' }}>Fases de Batalla</h4>
+                
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  <div className="glass-panel" style={{ padding: '1rem', border: '1px solid #eab30844' }}>
+                    <h5 style={{ color: '#eab308', margin: '0 0 0.5rem', fontWeight: 900 }}>1. FASE DE ROBO Y STANDBY</h5>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>El sistema automáticamente resuelve los efectos pasivos vigentes (como Veneno) y robas una carta de tu mazo al inicio de tu turno.</p>
+                  </div>
+                  
+                  <div className="glass-panel" style={{ padding: '1rem', border: '1px solid #3b82f644' }}>
+                    <h5 style={{ color: '#3b82f6', margin: '0 0 0.5rem', fontWeight: 900 }}>2. FASE PRINCIPAL</h5>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Aquí puedes preparar el campo. Tienes derecho a <strong>colocar 1 Monstruo</strong> en el campo por turno, y colocar todas las <strong>cartas de Trampa</strong> que quieras (hasta un máximo de 3). Para usar habilidades pasivas de las cartas, asegúrate de colocarlas correctamente.</p>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '1rem', border: '1px solid #ef444444' }}>
+                    <h5 style={{ color: '#ef4444', margin: '0 0 0.5rem', fontWeight: 900 }}>3. FASE DE BATALLA</h5>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Selecciona tus cartas en el campo y haz clic en las cartas enemigas (o ataque directo al jugador si el campo enemigo está abierto). Cada carta solo puede atacar 1 vez por turno. Recuerda utilizar el botón de "Ataque Directo" cuando sea posible.</p>
+                  </div>
+
+                  <div className="glass-panel" style={{ padding: '1rem', border: '1px solid #8b5cf644' }}>
+                    <h5 style={{ color: '#8b5cf6', margin: '0 0 0.5rem', fontWeight: 900 }}>4. FASE FINAL</h5>
+                    <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-muted)' }}>Termina tu turno y cede el control. Las trampas del enemigo podrían revelarse ahora o durante tus ataques. ¡Mantente alerta!</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                <button className="btn-entendido" style={{ width: '100%' }} onClick={() => setShowStoryInfo(false)}>
+                  ENTENDIDO
+                </button>
               </div>
             </motion.div>
           </motion.div>

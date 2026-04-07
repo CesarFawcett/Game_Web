@@ -34,8 +34,8 @@ const OnboardingModal = ({ isOpen, message, onClose, title = "COMUNICADO DEL SIS
 
             <div className="onboarding-footer">
               <div className="scanline-mini"></div>
-              <button className="arcade-btn small-btn" onClick={onClose}>
-                ENTENDIDO
+              <button className="btn-entendido" onClick={onClose}>
+                <Zap size={18} /> ENTENDIDO
               </button>
             </div>
           </motion.div>

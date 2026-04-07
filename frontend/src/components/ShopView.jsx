@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
-import { Plus, Shield, ShoppingBag, Check, Lock, Gift, Trophy } from 'lucide-react';
+import { Plus, Shield, ShoppingBag, Check, Lock, Gift, Trophy, Eye, X } from 'lucide-react';
 import CardItem from './CardItem';
 import { playSound } from '../utils/sound';
 
@@ -13,6 +13,7 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl, isOnboarding }) {
   const [openingPackId, setOpeningPackId] = useState(null);
   const [avatars, setAvatars] = useState([]);
   const [shopBoards, setShopBoards] = useState([]);
+  const [previewPack, setPreviewPack] = useState(null);
 
   React.useEffect(() => {
     fetchPacks();
@@ -221,6 +222,7 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl, isOnboarding }) {
                 description="Contiene cartas básicas para empezar tu mazo."
                 imageUrl={packs.find(p => p.packId === 1)?.imageUrl || "/uploads/default_pack.png"}
                 onPurchase={handleClaimFreePack}
+                onPreview={() => setPreviewPack(packs.find(p => p.packId === 1))}
                 loading={loading || isOpening}
                 userCredits={999999}
                 isOpening={isOpening && openingPackId === 'free'}
@@ -241,6 +243,7 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl, isOnboarding }) {
             description={`Contiene ${pack.cardsPerPack} cartas.`}
             imageUrl={pack.imageUrl}
             onPurchase={() => handlePurchase(pack._id, pack.price)}
+            onPreview={() => setPreviewPack(pack)}
             loading={loading || isOpening}
             userCredits={user.credits}
             isOpening={isOpening && openingPackId === pack._id}
@@ -327,16 +330,64 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl, isOnboarding }) {
             </button>
           </motion.div>
         )}
+
+        {previewPack && (
+          <motion.div className="reward-overlay preview-modal-overlay" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setPreviewPack(null)}>
+            <motion.div 
+              className="pack-preview-modal glass-panel" 
+              initial={{ scale: 0.9, y: 50 }} 
+              animate={{ scale: 1, y: 0 }} 
+              exit={{ scale: 0.9, y: 50 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="modal-header">
+                <div>
+                  <h2 className="gradient-text">{previewPack.name}</h2>
+                  <p style={{ color: 'var(--text-muted)' }}>Contenido del sobre y probabilidades</p>
+                </div>
+                <button className="btn-close-modal" onClick={() => setPreviewPack(null)}><X /></button>
+              </div>
+
+              <div className="pack-cards-list">
+                {previewPack.cardPool?.map((item, idx) => {
+                  const card = item.cardId;
+                  if (!card) return null;
+                  return (
+                    <div key={idx} className="preview-card-item">
+                      <div className="preview-card-image">
+                        <img src={`${card.imageUrl && typeof card.imageUrl === 'string' && card.imageUrl.startsWith('http') ? '' : baseUrl}${card.imageUrl}`} alt={card.name} />
+                        <div className="card-drop-badge">{item.dropRate.toFixed(1)}%</div>
+                      </div>
+                      <div className="preview-card-info">
+                        <p className="card-name">{card.name}</p>
+                        <p className="card-stats">⚔️ {card.attack} | 🛡️ {card.defense}</p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button className="btn-shop-buy" style={{ marginTop: '2rem', width: 'auto', alignSelf: 'center', padding: '1rem 3rem' }} onClick={() => setPreviewPack(null)}>
+                ENTENDIDO
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
 }
 
-function ChestCard({ title, price, description, onPurchase, loading, userCredits, disabled, isOpening, imageUrl, baseUrl }) {
+function ChestCard({ title, price, description, onPurchase, onPreview, loading, userCredits, disabled, isOpening, imageUrl, baseUrl }) {
   const isAffordable = userCredits >= price || price === 0;
 
   return (
     <div className={`chest-card ${disabled ? 'disabled' : ''}`}>
+      <div className="chest-preview-btn-wrap">
+         <button className="btn-view-contents" title="Ver Contenido" onClick={(e) => { e.stopPropagation(); onPreview(); }}>
+            <Eye size={18} />
+         </button>
+      </div>
       <div className="chest-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '180px' }}>
         <motion.div 
           className="chest-visual"

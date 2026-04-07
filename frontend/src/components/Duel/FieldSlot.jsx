@@ -33,11 +33,21 @@ const FieldSlot = ({ side, index, baseUrl }) => {
   );
 
   const handleClick = () => {
+    const isMobile = window.innerWidth < 1024;
+    
     if (isMe) {
-      if (store.selectedHandIdx !== null) store.placeCard(store.selectedHandIdx, index);
-      else store.handleCardClick(index, store.myRole);
+      if (store.selectedHandIdx !== null) {
+        store.placeCard(store.selectedHandIdx, index);
+      } else {
+        if (isMobile && card) store.setSetter('hoveredCard', card);
+        store.handleCardClick(index, store.myRole);
+      }
     } else {
-      store.handleCardClick(index, prefix === 'p1' ? 'player1' : 'player2');
+      if (isMobile && card && store.selectedAttackerIdx === null) {
+        store.setSetter('hoveredCard', card);
+      } else {
+        store.handleCardClick(index, prefix === 'p1' ? 'player1' : 'player2');
+      }
     }
   };
 

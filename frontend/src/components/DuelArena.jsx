@@ -13,16 +13,19 @@ import { socket } from '../utils/socket';
 
 function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfig, login, onExit }) {
   const store = useMatchStore();
-  
+
   // COIN FLIP STATES
   const [coinFlipActive, setCoinFlipActive] = React.useState(false);
   const [coinResult, setCoinResult] = React.useState(null); // 'heads' or 'tails'
   const [coinAnimating, setCoinAnimating] = React.useState(false);
   const [showFinalMsg, setShowFinalMsg] = React.useState(false);
   const [victoryData, setVictoryData] = React.useState(null);
+  const [isMobile, setIsMobile] = React.useState(window.innerWidth < 1024);
 
   // 1. Setup & Initialization
   useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', handleResize);
     if (!user || !enemy || !cardsPool || cardsPool.length === 0) {
       console.log("[DuelArena] Waiting for data to initialize...", { user: !!user, enemy: !!enemy, pool: cardsPool?.length });
       return;
@@ -137,6 +140,7 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfi
       socket.off('rps_timer_tick');
       socket.off('rps_result');
       socket.off('game_start');
+      window.removeEventListener('resize', handleResize);
     };
   }, [store.isPvP, enemy?._id, user?.username, playerDeckIds?.length, cardsPool?.length, baseUrl]); // eslint-disable-line
 
@@ -145,6 +149,40 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfi
   // POV States for rendering
   const pPOV = store.getPOVState('player');
   const ePOV = store.getPOVState('enemy');
+
+  // MOBILE PREVIEW LOGIC
+  const mobilePreviewCard = store.hoveredCard;
+  const handPreviewCard = store.selectedHandIdx !== null ? pPOV.hand[store.selectedHandIdx] : null;
+
+  const renderMobilePreview = () => {
+    if (!isMobile) return null;
+    return (
+      <AnimatePresence>
+        {handPreviewCard && (
+           <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 0.35, scale: 1.1 }} exit={{ opacity: 0 }} className="mobile-hand-preview-bg">
+              <img src={`${handPreviewCard.imageUrl && typeof handPreviewCard.imageUrl === 'string' && handPreviewCard.imageUrl.startsWith('http') ? '' : baseUrl}${handPreviewCard.imageUrl}`} alt="Hand Preview" />
+           </motion.div>
+        )}
+        {mobilePreviewCard && (
+           <div className="mobile-preview-overlay" onClick={() => store.setSetter('hoveredCard', null)}>
+              <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className="mobile-preview-card glass-panel" onClick={(e) => e.stopPropagation()}>
+                 <div className="preview-card-wrap"><CardEntity card={mobilePreviewCard} baseUrl={baseUrl} /></div>
+                 <div className="preview-details">
+                    <h2 className="preview-name">{mobilePreviewCard.name}</h2>
+                    <p className="preview-ability-label">{mobilePreviewCard.abilityName || mobilePreviewCard.ability}</p>
+                    <p className="preview-desc">{mobilePreviewCard.description}</p>
+                    <div className="preview-stats-row">
+                      <div className="preview-stat-pill atk">⚔️ {mobilePreviewCard.attack}</div>
+                      <div className="preview-stat-pill def">🛡️ {mobilePreviewCard.defense}</div>
+                    </div>
+                    <button className="btn-close-preview" onClick={() => store.setSetter('hoveredCard', null)}><X size={20} /> CERRAR</button>
+                 </div>
+              </motion.div>
+           </div>
+        )}
+      </AnimatePresence>
+    );
+  };
 
   const enemyFieldTexture = ePOV.data?.fieldTextureUrl
     ? { backgroundImage: `url(${ePOV.data.fieldTextureUrl && typeof ePOV.data.fieldTextureUrl === 'string' && ePOV.data.fieldTextureUrl.startsWith('http') ? '' : baseUrl}${ePOV.data.fieldTextureUrl})`, backgroundSize: 'cover' }
@@ -341,6 +379,8 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfi
         <BattleConsole onExit={onExit} />
         {renderPlayerSide({}, pPOV.deck.length, pPOV.hp)}
         <HandArea baseUrl={baseUrl} />
+
+        {renderMobilePreview()}
 
         <AnimatePresence>
           {coinFlipActive && (

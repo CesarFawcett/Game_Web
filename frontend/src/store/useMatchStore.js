@@ -49,6 +49,7 @@ const useMatchStore = create((set, get) => ({
   p2Traps: [],
   p1Graveyard: [],
   p2Graveyard: [],
+  activeEffect: null,
 
   // Absolute Decks & Hands
   p1Deck: [], p2Deck: [], p1Hand: [], p2Hand: [],
@@ -231,10 +232,13 @@ const useMatchStore = create((set, get) => ({
     const totalPutrefaction = s[oppPrefix + 'Field'].reduce((acc, c) => {
       if (!c) return acc;
       const effectiveAtk = c.attack + oppTrapBonusAtk;
-      return acc + (c?.ability === 'Putrefacción' ? Math.floor(effectiveAtk * 0.3) : 0);
+      return acc + (c?.ability === 'Putrefacción' ? Math.floor(effectiveAtk * 0.2) : 0);
     }, 0);
 
     if (totalPoison > 0) {
+      set({ activeEffect: { type: 'VenenoGlobal', defender: prefix } });
+      setTimeout(() => set({ activeEffect: null }), 1500);
+
       set(prev => ({
         [prefix + 'Field']: prev[prefix + 'Field'].map(c => {
           if (!c) return null;
@@ -250,6 +254,9 @@ const useMatchStore = create((set, get) => ({
     }
 
     if (totalPutrefaction > 0) {
+      set({ activeEffect: { type: 'PutrefaccionGlobal', defender: prefix } });
+      setTimeout(() => set({ activeEffect: null }), 2000);
+
       set(prev => ({ [prefix + 'HP']: Math.max(0, prev[prefix + 'HP'] - totalPutrefaction) }));
       get().addLog(`${isMe ? 'Tu HP' : 'HP Enemigo'} disminuye ${totalPutrefaction} por Putrefacción.`);
     }
@@ -281,7 +288,9 @@ const useMatchStore = create((set, get) => ({
     const nextRole = s.turn === 'player1' ? 'player2' : 'player1';
     set({
       turn: nextRole,
-      turnCount: nextRole === 'player1' ? s.turnCount + 1 : s.turnCount
+      turnCount: nextRole === 'player1' ? s.turnCount + 1 : s.turnCount,
+      selectedHandIdx: null,
+      selectedAttackerIdx: null
     });
     get().emitAction('END_TURN');
     get().startTurn(nextRole);
@@ -290,6 +299,10 @@ const useMatchStore = create((set, get) => ({
   advancePhase: () => {
     const s = get();
     if (s.turn !== s.myRole || s.isProcessing || s.winner) return;
+    
+    // Clear any selections to prevent UI locks
+    set({ selectedHandIdx: null, selectedAttackerIdx: null });
+
     if (s.phase === 'MAIN 1') {
       const isFirstTurnOfGame = s.turnCount === 1 && s.turn === s.firstTurnRole;
       if (isFirstTurnOfGame) {
@@ -494,10 +507,38 @@ const useMatchStore = create((set, get) => ({
       });
       get().addLog(`${attackerRole === 'player1' ? 'P1' : 'P2'} ataca directo con ${attacker.name} infligiendo ${attacker.attack} daño.`);
     } else {
-      const damage = attacker.attack;
+      let damage = attacker.attack;
+
+      // --- Habilidad: Escudo ---
+      if (target.ability === 'Escudo' && !target.shieldBroken) {
+        set({ activeEffect: { type: 'Escudo', targetIdx, defender: dPrefix } });
+        get().addLog(`¡El Escudo de ${target.name} ha bloqueado completamente el daño!`);
+        // Break the shield and skip defense calculations
+        set(prev => {
+           const nextF = [...prev[dPrefix + 'Field']];
+           if (nextF[targetIdx]) {
+              nextF[targetIdx] = { ...nextF[targetIdx], shieldBroken: true };
+           }
+           return { [dPrefix + 'Field']: nextF };
+        });
+        
+        // Attacker still loses attack count
+        set(prev => {
+          const nextF = [...prev[aPrefix + 'Field']];
+           if (nextF[attackerIdx]) {
+             nextF[attackerIdx] = { ...nextF[attackerIdx], attacksThisTurn: (nextF[attackerIdx].attacksThisTurn || 0) + 1 };
+           }
+           return { [aPrefix + 'Field']: nextF };
+        });
+        
+        // Clean effect and exit logic early since damage was 0
+        setTimeout(() => set({ activeEffect: null }), 1000);
+        return;
+      }
 
       // --- Habilidad: Daño Perforante ---
       if (attacker.ability === 'Daño Perforante' && damage > target.defense) {
+        set({ activeEffect: { type: 'Daño Perforante', attackerIdx, targetIdx, attackerPrefix: aPrefix } });
         const extra = damage - target.defense;
         set(p => ({ [dPrefix + 'HP']: Math.max(0, p[dPrefix + 'HP'] - extra) }));
         get().addLog(`¡Daño Perforante inflige ${extra} al HP rival!`);
@@ -505,6 +546,7 @@ const useMatchStore = create((set, get) => ({
 
       // --- Habilidad: Fuego (Splash Damage) ---
       if (attacker.ability === 'Fuego') {
+        set({ activeEffect: { type: 'Fuego', attackerIdx, targetIdx, attackerPrefix: aPrefix } });
         const splash = Math.floor(damage * 0.4);
         set(prev => {
           const nextF = [...prev[dPrefix + 'Field']];
@@ -557,6 +599,7 @@ const useMatchStore = create((set, get) => ({
 
           // --- Habilidad: Robo de Vida ---
           if (nextA.ability === 'Robo de Vida') {
+            set({ activeEffect: { type: 'Robo de Vida', targetIdx, attackerIdx, defender: dPrefix } });
             const boost = Math.floor((nextA.attack + trapAtkBonus) * 0.2);
             nextA.attack += boost;
             nextA.defense += boost;
@@ -569,8 +612,14 @@ const useMatchStore = create((set, get) => ({
           nextA.attacksThisTurn += 1;
 
           if (target.ability === 'Hielo') {
+            set({ activeEffect: { type: 'Hielo', targetIdx, defender: dPrefix, attackerIdx } });
             nextA.frozen = 3;
             get().addLog(`¡${attacker.name} ha sido congelado por el Hielo de ${target.name}!`);
+          }
+
+          // Clear VFX
+          if (get().activeEffect) {
+            setTimeout(() => set({ activeEffect: null }), 1000);
           }
 
           if (newEffectiveAtk <= 0 && target.defense > 0) {

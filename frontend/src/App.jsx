@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { Plus, Play, User as UserIcon, Shield, Archive, Layout, Trophy, Flame, Settings, Zap, EyeOff } from 'lucide-react';
+import { Plus, Play, User as UserIcon, Shield, Archive, Layout, Trophy, Flame, Settings, Zap, EyeOff, Swords } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import useStore from './store'; // Zustand
 import useMatchStore from './store/useMatchStore';
@@ -24,7 +24,8 @@ import MissionsModal from './components/Missions/MissionsModal';
 import ComingSoon from './components/ComingSoon';
 import OnboardingModal from './components/OnboardingModal'; // NEW
 import FusionsView from './components/FusionsView';
-import BlackMarketView from './components/BlackMarketView';
+import CollectionWrapper from './components/CollectionWrapper';
+import CombatsWrapper from './components/CombatsWrapper';
 import { startAmbient, stopAmbient } from './utils/sound';
 import logoG from './utils/img/IconoG.png';
 
@@ -217,20 +218,13 @@ function App() {
 
         {currentPath !== 'admin' && !user.justRegistered && (
           <nav className="nav-bar">
-            <TabItem id="collection" label="Cartas" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Archive size={18} />} />
-            <TabItem id="deck" label="Mi Deck" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Shield size={18} />} badge={deck.length} />
-            <TabItem 
-              id="duels" 
-              label="Arena PvP" 
-              active={currentPath} 
-              setActive={(path) => navigate(`/${path}`)} 
-              icon={<Play size={18} />} 
-            />
+            {/* Nav item collection highlighting if we're on deck or collection */}
+            <TabItem id="collection" label="Cartas" active={['collection', 'deck', 'album'].includes(currentPath) ? 'collection' : currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Archive size={18} />} />
+            {/* Nav item story highlighting if we're on story or duels */}
+            <TabItem id="story" label="Combates" active={['story', 'duels'].includes(currentPath) ? 'story' : currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Swords size={18} />} />
+            
             <TabItem id="ranking" label="Ranking" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Trophy size={18} />} />
-            <TabItem id="story" label="Historia" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Play size={18} />} />
-            <TabItem id="album" label="Álbum" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Layout size={18} />} />
             <TabItem id="fusions" label="Fusiones" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Zap size={18} />} />
-            <TabItem id="blackmarket" label="Oculto" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<EyeOff size={18} />} />
             <TabItem id="shop" label="Compras" active={currentPath} setActive={(path) => navigate(`/${path}`)} icon={<Plus size={18} />} />
           </nav>
         )}
@@ -245,27 +239,9 @@ function App() {
                   </motion.div>
                 ) : <Navigate to="/collection" />
               } />
-              <Route path="/collection" element={
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                  <CardsView cards={cards} inventory={user.inventory || []} deck={deck} onAdd={(id) => addCardToDeck(id, BASE_URL)} onRemove={(id) => removeCardFromDeck(id, BASE_URL)} onSell={handleSellWrapper} baseUrl={BASE_URL} />
-                </motion.div>
-              } />
-              <Route path="/deck" element={
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                  <DeckView cards={cards.filter(c => deck.some(id => String(id) === String(c._id)))} deckInstances={deck} onRemove={(id) => removeCardFromDeck(id, BASE_URL)} baseUrl={BASE_URL} />
-                </motion.div>
-              } />
-              <Route path="/album" element={
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                  {(() => {
-                    const allDiscovered = Array.from(new Set([
-                      ...(user.discoveredCards || []).map(id => String(id)),
-                      ...(user.inventory || []).map(id => String(id))
-                    ]));
-                    return <AlbumView cards={cards} discoveredIds={allDiscovered} baseUrl={BASE_URL} />;
-                  })()}
-                </motion.div>
-              } />
+              <Route path="/collection" element={<CollectionWrapper cards={cards} user={user} deck={deck} addCardToDeck={addCardToDeck} removeCardFromDeck={removeCardFromDeck} handleSellWrapper={handleSellWrapper} BASE_URL={BASE_URL} />} />
+              <Route path="/deck" element={<CollectionWrapper cards={cards} user={user} deck={deck} addCardToDeck={addCardToDeck} removeCardFromDeck={removeCardFromDeck} handleSellWrapper={handleSellWrapper} BASE_URL={BASE_URL} />} />
+              <Route path="/album" element={<CollectionWrapper cards={cards} user={user} deck={deck} addCardToDeck={addCardToDeck} removeCardFromDeck={removeCardFromDeck} handleSellWrapper={handleSellWrapper} BASE_URL={BASE_URL} />} />
               <Route path="/shop" element={
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                   {/* ShopView sets updated user data here to Zustand */}
@@ -277,30 +253,13 @@ function App() {
                   <FusionsView />
                 </motion.div>
               } />
-              <Route path="/blackmarket" element={
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                  <BlackMarketView />
-                </motion.div>
-              } />
-              <Route path="/story" element={
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                  <StoryView user={user} baseUrl={BASE_URL} onStartDuel={(enemy) => { 
-                    if (deck.length < 10) {
-                      alert("¡Tu mazo debe tener al menos 10 cartas para batallar!");
-                      navigate('/deck');
-                      return;
-                    }
-                    setActiveDuel(enemy); 
-                    console.log("Duel with", enemy.name); 
-                  }} />
-                </motion.div>
-              } />
+              <Route path="/story" element={<CombatsWrapper user={user} BASE_URL={BASE_URL} deck={deck} setActiveDuel={setActiveDuel} />} />
+              <Route path="/duels" element={<CombatsWrapper user={user} BASE_URL={BASE_URL} deck={deck} setActiveDuel={setActiveDuel} />} />
               <Route path="/ranking" element={
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                   <RankingView user={user} setUser={(u) => useStore.getState().login(u)} baseUrl={BASE_URL} />
                 </motion.div>
               } />
-              <Route path="/duels" element={<DuelsView />} />
               <Route path="/" element={<Navigate to="/collection" />} />
             </Routes>
           </AnimatePresence>

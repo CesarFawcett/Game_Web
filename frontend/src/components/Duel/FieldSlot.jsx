@@ -78,6 +78,32 @@ const FieldSlot = ({ side, index, baseUrl }) => {
             className={`arena-card ${!isMe ? 'card-enemy' : ''} ${card.attacksThisTurn > 0 ? 'exhausted' : ''} ${card.frozen > 0 ? 'frozen-card' : ''} ability-${(card.ability || '').toLowerCase().replace(/\s+/g, '-')}`}
           >
             <CardEntity card={card} baseUrl={baseUrl} />
+
+            {/* VFX OVERLAY FOR LOCAL EFFECTS */}
+            {store.activeEffect && (
+              <div className="vfx-container" style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 500 }}>
+                {/* Effect on TARGET / DEFENDER */}
+                {store.activeEffect.targetIdx === index && store.activeEffect.defender === prefix && (
+                  <>
+                    {store.activeEffect.type === 'Fuego' && <div className="fx-fireball" />}
+                    {store.activeEffect.type === 'Hielo' && <div className="fx-icicle" />}
+                    {store.activeEffect.type === 'Escudo' && <div className="fx-shield-block" />}
+                    {store.activeEffect.type === 'Daño Perforante' && <div className="fx-drill" />}
+                    {store.activeEffect.type === 'Robo de Vida' && <div className="fx-blood-lifesteal" />}
+                  </>
+                )}
+
+                {/* Specific handles for when Veneno is applied to a single card (if we decide to use it that way) */}
+                {store.activeEffect.type === 'VenenoLocal' && store.activeEffect.targetIdx === index && store.activeEffect.defender === prefix && (
+                   <div className="fx-poison-fog" />
+                )}
+
+                {/* Global Poison/Rot visualization on each affected card */}
+                {(store.activeEffect.type === 'VenenoGlobal' || store.activeEffect.type === 'PutrefaccionGlobal') && store.activeEffect.defender === prefix && (
+                  <div className={store.activeEffect.type === 'VenenoGlobal' ? 'fx-poison-fog' : ''} />
+                )}
+              </div>
+            )}
           </motion.div>
         ) : (
           isMe && <div className="slot-placeholder" style={{ opacity: (store.phase.includes('MAIN')) ? 0.5 : 0.1 }}>D&D</div>

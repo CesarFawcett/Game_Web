@@ -283,6 +283,11 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfi
           )}
         </AnimatePresence>
 
+        {/* GLOBAL VFX OVERLAYS */}
+        {store.activeEffect && store.activeEffect.type === 'PutrefaccionGlobal' && (
+          <div className="fx-rot-global" />
+        )}
+
         <PhaseIndicator phase={store.phase} />
 
         {store.isPvP && (

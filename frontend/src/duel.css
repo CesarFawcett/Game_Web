@@ -429,6 +429,32 @@
   margin-right: 1px;
 }
 
+/* Spell Equip Badge */
+.spell-equip-badge {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 900;
+  z-index: 20;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  animation: badge-appear 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badge-appear {
+  0% { transform: scale(0) rotate(-45deg); opacity: 0; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
 /* Mockup Console Middle */
 .battle-console-mockup {
   display: flex;
@@ -493,17 +519,39 @@
 }
 
 @keyframes pulse-red {
-  0% {
-    box-shadow: 0 0 5px #ef4444;
-  }
+  0% { box-shadow: 0 0 5px #ef4444; }
+  50% { box-shadow: 0 0 20px #ef4444; }
+  100% { box-shadow: 0 0 5px #ef4444; }
+}
 
-  50% {
-    box-shadow: 0 0 20px #ef4444;
-  }
+.overwrite-target {
+  border-color: #facc15 !important;
+  box-shadow: 0 0 25px #facc15 !important;
+  animation: pulse-yellow 1s infinite !important;
+}
 
-  100% {
-    box-shadow: 0 0 5px #ef4444;
-  }
+@keyframes pulse-yellow {
+  0% { box-shadow: 0 0 5px #facc15; }
+  50% { box-shadow: 0 0 25px #facc15; }
+  100% { box-shadow: 0 0 5px #facc15; }
+}
+
+.overwrite-label {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.8);
+  color: #facc15;
+  font-size: 0.6rem;
+  font-weight: 900;
+  text-align: center;
+  padding: 4px 0;
+  z-index: 10;
+  pointer-events: none;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .direct-attack-zone-new {

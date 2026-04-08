@@ -75,7 +75,7 @@ const FieldSlot = ({ side, index, baseUrl }) => {
             }}
             exit={{ opacity: 0, scale: 0, rotate: isMe ? -15 : 15 }}
             transition={{ duration: 0.4 }}
-            className={`arena-card ${!isMe ? 'card-enemy' : ''} ${card.attacksThisTurn > 0 ? 'exhausted' : ''} ${card.frozen > 0 ? 'frozen-card' : ''} ability-${(card.ability || '').toLowerCase().replace(/\s+/g, '-')}`}
+            className={`arena-card ${!isMe ? 'card-enemy' : ''} ${card.attacksThisTurn > 0 ? 'exhausted' : ''} ${card.frozen > 0 ? 'frozen-card' : ''} ${(card.abilities || []).map(a => `ability-${a.toLowerCase().replace(/\s+/g, '-')}`).join(' ')}`}
           >
             <CardEntity card={card} baseUrl={baseUrl} />
 

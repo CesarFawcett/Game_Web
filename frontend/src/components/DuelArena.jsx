@@ -245,10 +245,24 @@ function DuelArena({ user, enemy, playerDeckIds, cardsPool, baseUrl, globalConfi
               const prefix = store.getPOVPrefix('player');
               const myHand = store[prefix + 'Hand'];
               const isTrapSelected = store.selectedHandIdx !== null && myHand[store.selectedHandIdx]?.type === 'Trap';
-              const canPlace = isTrapSelected && !traps[i];
+              const isOccupied = !!traps[i];
+              // Any slot is targetable if a trap is selected (either for placing in null or overwriting)
+              const isTargetable = isTrapSelected;
+              
               return (
-                <div key={`trap-player-${i}`} className={`side-trap-slot ${canPlace ? 'targetable' : ''}`} onClick={() => canPlace && store.activateTrap(store.selectedHandIdx)} onMouseEnter={() => traps[i] && store.setSetter('hoveredCard', traps[i])} onMouseLeave={() => store.setSetter('hoveredCard', null)}>
-                  {traps[i] ? <img src={`${traps[i].imageUrl && typeof traps[i].imageUrl === 'string' && traps[i].imageUrl.startsWith('http') ? '' : baseUrl}${traps[i].imageUrl}`} alt="Trap" style={{ width: '100%', height: '100%', objectFit: 'cover' }} /> : <span className="trap-text">TRAMPA</span>}
+                <div 
+                  key={`trap-player-${i}`} 
+                  className={`side-trap-slot ${isTargetable ? 'targetable' : ''} ${isTargetable && isOccupied ? 'overwrite-target' : ''}`} 
+                  onClick={() => isTargetable && store.activateTrap(store.selectedHandIdx, i)} 
+                  onMouseEnter={() => traps[i] && store.setSetter('hoveredCard', traps[i])} 
+                  onMouseLeave={() => store.setSetter('hoveredCard', null)}
+                >
+                  {traps[i] ? (
+                    <img src={`${traps[i].imageUrl && typeof traps[i].imageUrl === 'string' && traps[i].imageUrl.startsWith('http') ? '' : baseUrl}${traps[i].imageUrl}`} alt="Trap" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  ) : (
+                    <span className="trap-text">TRAMPA</span>
+                  )}
+                  {isTargetable && isOccupied && <div className="overwrite-label">REEMPLAZAR</div>}
                 </div>
               );
             })}

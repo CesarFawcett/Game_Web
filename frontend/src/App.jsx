@@ -29,7 +29,10 @@ import CombatsWrapper from './components/CombatsWrapper';
 import { startAmbient, stopAmbient } from './utils/sound';
 import logoG from './utils/img/IconoG.png';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const BASE_URL = import.meta.env.VITE_API_URL || 
+  (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1' 
+    ? `http://${window.location.hostname}:5000` 
+    : 'http://localhost:5000');
 const API_URL = `${BASE_URL}/api/admin`;
 const SHOP_URL = `${BASE_URL}/api/shop`;
 
@@ -163,44 +166,42 @@ function App() {
       </AnimatePresence>
 
       <div className="app-container">
-        <header className="app-header-mobile" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-            <img src={logoG} alt="Designer Logo" style={{ width: '60px', height: 'auto', filter: 'drop-shadow(0 0 10px rgba(99, 102, 241, 0.4))' }} />
+        <header className="app-header-mobile">
+          <div className="header-brand">
+            <img src={logoG} alt="Designer Logo" className="header-logo" />
             <div>
-              <h1 className="gradient-text" style={{ fontSize: '3rem', fontWeight: 900, letterSpacing: '-1px', lineHeight: 1 }}>CARD BATTLE UNIVERSE</h1>
-              <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>EL Universo Te Saluda • Bienvenido {user.username}</p>
+              <h1 className="gradient-text header-title">CARD BATTLE UNIVERSE</h1>
+              <p className="header-subtitle">Bienvenido {user.username}</p>
             </div>
           </div>
-          <div className="header-actions-mobile" style={{ display: 'flex', gap: '1.2rem', alignItems: 'center' }}>
+          <div className="header-actions-mobile">
             {!user.justRegistered && (
-              <button className="glass-panel" onClick={() => setShowMissions(true)} style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', padding: '0.6rem 1rem', border: '1px solid var(--accent-gold)', borderRadius: '20px', cursor: 'pointer' }}>
-                <Trophy size={18} className="text-gold" />
+              <button className="glass-panel header-action-btn" onClick={() => setShowMissions(true)} style={{ border: '1px solid var(--accent-gold)' }}>
+                <Trophy size={16} className="text-gold" />
                 <span className="hide-on-mobile" style={{ fontWeight: 600 }}>Misiones</span>
                 {missions.dailyWins > 0 && <span className="badge-dot" />}
               </button>
             )}
-            <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem 1.2rem', border: '1px solid #f97316', borderRadius: '20px', background: 'rgba(249, 115, 22, 0.05)' }} title="Racha de Conexión">
-              <Flame size={20} color="#f97316" fill={user.canClaimStreakReward ? "#f97316" : "none"} />
-              <span style={{ fontWeight: 900, color: '#f97316', fontSize: '1.1rem' }}>{user.connectionStreak || 1}</span>
+            <div className="glass-panel header-action-btn" style={{ border: '1px solid #f97316', background: 'rgba(249, 115, 22, 0.05)' }} title="Racha de Conexión">
+              <Flame size={16} color="#f97316" fill={user.canClaimStreakReward ? "#f97316" : "none"} />
+              <span style={{ fontWeight: 900, color: '#f97316' }}>{user.connectionStreak || 1}</span>
             </div>
-            <div className="glass-panel" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '0.6rem 1.2rem', border: '1px solid var(--accent-gold)', borderRadius: '20px', background: 'rgba(212, 175, 55, 0.05)' }}>
+            <div className="glass-panel header-action-btn" style={{ border: '1px solid var(--accent-gold)', background: 'rgba(212, 175, 55, 0.05)' }}>
               <CoinsIcon />
-              <span style={{ fontWeight: 900, color: 'var(--accent-gold)', fontSize: '1.1rem' }}>{(user.credits || 0).toLocaleString()}</span>
+              <span style={{ fontWeight: 900, color: 'var(--accent-gold)' }}>{(user.credits || 0).toLocaleString()}</span>
             </div>
-            {!user.justRegistered && (
+            {!user.justRegistered && user.role === 'admin' && (
               <>
-                {user.role === 'admin' && (
-                  <button className={`btn-primary ${currentPath === 'admin' ? 'active' : ''}`} onClick={() => navigate('/admin')}>
-                    <Shield size={20} /> <span className="hide-on-mobile">Panel Admin</span>
-                  </button>
-                )}
+                <button className={`btn-primary ${currentPath === 'admin' ? 'active' : ''}`} onClick={() => navigate('/admin')}>
+                  <Shield size={18} /> <span className="hide-on-mobile">Admin</span>
+                </button>
                 <button className={`btn-primary ${currentPath !== 'admin' ? 'active' : ''}`} onClick={() => navigate('/collection')}>
-                  <Play size={20} /> <span className="hide-on-mobile">Mi Colección</span>
+                  <Play size={18} /> <span className="hide-on-mobile">Colección</span>
                 </button>
               </>
             )}
-            <button onClick={onLogout} className="btn-primary" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-              <UserIcon size={20} /> <span className="hide-on-mobile">Salir</span>
+            <button onClick={onLogout} className="btn-primary btn-logout">
+              <UserIcon size={18} /> <span className="hide-on-mobile">Salir</span>
             </button>
           </div>
         </header>

@@ -351,7 +351,6 @@ class DuelManager {
 
     if (winnerName) {
       try {
-        const User = require('./models/User');
         const loser = duel.players.find(p => p.name !== winnerName);
         
         // Winner gets +15 pts (Case-insensitive search for robustness)

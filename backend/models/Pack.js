@@ -36,6 +36,10 @@ const packSchema = new mongoose.Schema({
     type: Number, 
     unique: true, 
     required: false
+  },
+  requiredRankIndex: {
+    type: Number,
+    default: 0
   }
 }, { timestamps: true });
 

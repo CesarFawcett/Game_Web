@@ -38,7 +38,11 @@ body {
 }
 
 .arcade-container.full-bg {
-  background: url('./utils/img/login_bg.png') center/cover no-repeat;
+  background: 
+    radial-gradient(ellipse at 20% 50%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 20%, rgba(236, 72, 153, 0.1) 0%, transparent 40%),
+    radial-gradient(ellipse at 50% 80%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+    linear-gradient(180deg, #020617 0%, #0f172a 50%, #020617 100%);
 }
 
 .dark-cinematic {
@@ -266,6 +270,65 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
+/* Header */
+.app-header-mobile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.header-logo {
+  width: 50px;
+  height: auto;
+  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+}
+
+.header-title {
+  font-size: 2.5rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+
+.header-subtitle {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-top: 0.2rem;
+}
+
+.header-actions-mobile {
+  display: flex;
+  gap: 0.8rem;
+  align-items: center;
+}
+
+.header-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 16px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-logout {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.btn-logout:hover {
+  background: rgba(239, 68, 68, 0.2) !important;
+}
+
 /* Navigation */
 .nav-bar {
   display: flex;
@@ -301,6 +364,54 @@ body {
   background: var(--primary);
   color: #fff;
   box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.5);
+}
+
+/* Collection Sub-navigation */
+.collection-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin: 1rem auto 2rem;
+  background: rgba(15, 23, 42, 0.6);
+  padding: 0.5rem;
+  borderRadius: 12px;
+  border: 1px solid var(--glass-border);
+  width: fit-content;
+}
+
+.tab-button {
+  padding: 0.8rem 2rem; 
+  border-radius: 8px; 
+  border: none; 
+  font-weight: 800; 
+  cursor: pointer;
+  display: flex; 
+  align-items: center; 
+  gap: 0.5rem; 
+  transition: all 0.3s;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+  .collection-tabs {
+    gap: 0.5rem;
+    padding: 0.4rem;
+    margin-bottom: 1.5rem;
+    width: 95%;
+  }
+
+  .tab-button {
+    padding: 0.6rem 0.8rem;
+    font-size: 0.75rem;
+    flex: 1;
+    justify-content: center;
+  }
+
+  .tab-button svg {
+    width: 14px;
+    height: 14px;
+  }
 }
 
 /* Cards & Grid */
@@ -1682,37 +1793,75 @@ body {
 @media (max-width: 768px) {
   /* Global Header & Layout */
   .app-container {
-    padding: 1rem;
-    padding-bottom: 90px; /* Space for fixed bottom navigation */
+    padding: 0.8rem;
+    padding-bottom: 85px; /* Space for fixed bottom navigation */
+  }
+
+  /* Header - compact mobile layout */
+  .app-header-mobile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .header-brand {
+    gap: 0.7rem;
+  }
+
+  .header-logo {
+    width: 32px;
+  }
+
+  .header-title {
+    font-size: 1.3rem !important;
+    letter-spacing: -0.5px;
+  }
+
+  .header-subtitle {
+    font-size: 0.7rem;
+    margin-top: 0;
   }
 
   .gradient-text {
-    font-size: 1.6rem !important;
+    font-size: 1.3rem !important;
   }
-  
-  /* Fix App header inline styles */
-  .app-header-mobile {
-    flex-direction: column;
-    align-items: flex-start !important;
-    gap: 1rem;
-    margin-bottom: 1.5rem !important;
-  }
-  
+
   .header-actions-mobile {
-    width: 100%;
     display: flex;
-    gap: 0.5rem !important;
-    justify-content: space-between;
-    flex-wrap: wrap;
+    gap: 0.4rem;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
   }
-  
+
+  .header-action-btn {
+    padding: 0.35rem 0.6rem;
+    border-radius: 12px;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+  }
+
   .hide-on-mobile {
     display: none !important;
   }
 
   .btn-primary {
-    padding: 0.5rem 0.8rem;
-    font-size: 0.8rem;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.75rem;
+    border-radius: 8px;
+  }
+
+  .btn-logout {
+    margin-left: auto;
+  }
+
+  .settings-trigger {
+    top: 0.6rem;
+    right: 0.6rem;
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
   }
 
   /* Bottom Navigation Bar */

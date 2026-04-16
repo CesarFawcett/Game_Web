@@ -223,6 +223,26 @@ function RankingView({ user, setUser, baseUrl }) {
                 
                 .text-gold { color: #facc15; }
                 .text-orange { color: #f97316; }
+
+                @media (max-width: 900px) {
+                    .ranking-grid { grid-template-columns: 1fr; }
+                    .rewards-section { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+                    .reward-card { margin-bottom: 0 !important; }
+                }
+
+                @media (max-width: 600px) {
+                    .ranking-header { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+                    .season-timer-box { width: 100%; justify-content: center; }
+                    .leaderboard-header, .leaderboard-item { grid-template-columns: 40px 1fr 80px; padding: 1rem; }
+                    .player-info { gap: 8px; }
+                    .player-info img { width: 28px; height: 28px; }
+                    .username { font-size: 0.85rem; }
+                    .points { font-size: 0.85rem; }
+                    .reward-card { flex-direction: column; align-items: center; text-align: center; }
+                    .reward-icon-box { margin-bottom: 0.5rem; }
+                    .streak-progress { justify-content: center; }
+                    .rewards-section { grid-template-columns: 1fr; }
+                }
             `}</style>
         </div>
     );

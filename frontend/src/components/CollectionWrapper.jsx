@@ -24,42 +24,33 @@ function CollectionWrapper({ cards, user, deck, addCardToDeck, removeCardFromDec
   return (
     <div style={{ width: '100%', display: 'flex', flexDirection: 'column' }}>
       {/* Sub-navigation inside the unified Collection space */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', margin: '1rem auto 2rem', background: 'rgba(15, 23, 42, 0.6)', padding: '0.5rem', borderRadius: '12px', border: '1px solid var(--glass-border)' }}>
+      <div className="collection-tabs">
         <button 
           onClick={() => handleTab('collection')}
+          className="tab-button"
           style={{ 
-            padding: '0.8rem 2rem', 
-            borderRadius: '8px', border: 'none', 
             background: activeTab === 'collection' ? 'rgba(79, 70, 229, 0.2)' : 'transparent',
-            color: activeTab === 'collection' ? '#818cf8' : 'var(--text-muted)',
-            fontWeight: 800, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.3s'
+            color: activeTab === 'collection' ? '#818cf8' : 'var(--text-muted)'
           }}
         >
           <Archive size={18} /> INVENTARIO
         </button>
         <button 
           onClick={() => handleTab('deck')}
+          className="tab-button"
           style={{ 
-            padding: '0.8rem 2rem', 
-            borderRadius: '8px', border: 'none', 
             background: activeTab === 'deck' ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
-            color: activeTab === 'deck' ? '#34d399' : 'var(--text-muted)',
-            fontWeight: 800, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.3s'
+            color: activeTab === 'deck' ? '#34d399' : 'var(--text-muted)'
           }}
         >
           <Shield size={18} /> MI DECK {deck && deck.length > 0 && <span style={{ background: '#10b981', color: '#000', padding: '2px 6px', borderRadius: '12px', fontSize: '0.8rem' }}>{deck.length}/30</span>}
         </button>
         <button 
           onClick={() => handleTab('album')}
+          className="tab-button"
           style={{ 
-            padding: '0.8rem 2rem', 
-            borderRadius: '8px', border: 'none', 
             background: activeTab === 'album' ? 'rgba(168, 85, 247, 0.2)' : 'transparent',
-            color: activeTab === 'album' ? '#a855f7' : 'var(--text-muted)',
-            fontWeight: 800, cursor: 'pointer',
-            display: 'flex', alignItems: 'center', gap: '0.5rem', transition: 'all 0.3s'
+            color: activeTab === 'album' ? '#a855f7' : 'var(--text-muted)'
           }}
         >
           <Layout size={18} /> ÁLBUM

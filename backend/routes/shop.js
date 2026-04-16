@@ -4,6 +4,7 @@ const Card = require('../models/Card');
 const User = require('../models/User');
 const Pack = require('../models/Pack');
 const Avatar = require('../models/Avatar');
+const Enemy = require('../models/Enemy');
 
 // POST /register - Register new player
 router.post('/register', async (req, res) => {
@@ -143,7 +144,8 @@ router.post('/login', async (req, res) => {
         connectionStreak: user.connectionStreak || 1,
         lastRankingRewardClaimed: user.lastRankingRewardClaimed,
         canClaimStreakReward: (user.connectionStreak % 5 === 0 && (!user.lastStreakRewardClaimedAt || new Date(user.lastStreakRewardClaimedAt) < today)),
-        freePacksCount: user.freePacksCount || 0
+        freePacksCount: user.freePacksCount || 0,
+        maxDefeatedRank: (await Enemy.find({ _id: { $in: user.defeatedEnemies } })).reduce((max, e) => Math.max(max, e.rankIndex), -1)
       }
     });
   } catch (err) {
@@ -174,7 +176,8 @@ router.get('/user/:username', async (req, res) => {
       defeatedEnemies: user.defeatedEnemies || [],
       seenOnboarding: user.seenOnboarding || [],
       duelsUnlocked: user.duelsUnlocked || false,
-      freePacksCount: user.freePacksCount || 0
+      freePacksCount: user.freePacksCount || 0,
+      maxDefeatedRank: (await Enemy.find({ _id: { $in: user.defeatedEnemies } })).reduce((max, e) => Math.max(max, e.rankIndex), -1)
     });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -208,6 +211,19 @@ router.post('/purchase', async (req, res) => {
 
     if (user.credits < pack.price) {
       return res.status(400).json({ error: 'Insuficientes créditos' });
+    }
+
+    // --- Progression Check ---
+    if (pack.requiredRankIndex > 0) {
+        // Fetch rank details of defeated enemies
+        const defeated = await Enemy.find({ _id: { $in: user.defeatedEnemies } });
+        const maxRank = defeated.reduce((max, e) => Math.max(max, e.rankIndex), -1);
+        
+        if (maxRank < pack.requiredRankIndex - 1) {
+            return res.status(403).json({ 
+                error: `Este sobre está bloqueado. Debes derrotar a más enemigos en el Modo Historia para desbloquearlo.` 
+            });
+        }
     }
 
     user.credits -= pack.price;

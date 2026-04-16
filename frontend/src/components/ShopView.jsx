@@ -235,21 +235,30 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl, isOnboarding }) {
       <div className="chests-grid">
         {packs.length === 0 ? (
            <p style={{ color: 'var(--text-muted)', gridColumn: '1 / -1', textAlign: 'center' }}>No hay sobres disponibles en la tienda en este momento.</p>
-        ) : (isOnboarding ? packs.slice(0, 1) : packs).map(pack => (
-          <ChestCard 
-            key={pack._id}
-            title={pack.name}
-            price={pack.price}
-            description={`Contiene ${pack.cardsPerPack} cartas.`}
-            imageUrl={pack.imageUrl}
-            onPurchase={() => handlePurchase(pack._id, pack.price)}
-            onPreview={() => setPreviewPack(pack)}
-            loading={loading || isOpening}
-            userCredits={user.credits}
-            isOpening={isOpening && openingPackId === pack._id}
-            baseUrl={baseUrl}
-          />
-        ))}
+        ) : (isOnboarding ? packs.slice(0, 1) : packs).map(pack => {
+          const requiredRank = pack.requiredRankIndex || 0;
+          const isLocked = !isOnboarding && requiredRank > 0 && (user.maxDefeatedRank === undefined || user.maxDefeatedRank < requiredRank - 1);
+          const rankNames = ["Madera", "Bronce", "Plata", "Oro", "Diamante", "Leyenda"];
+          const requiredRankName = requiredRank > 0 ? rankNames[requiredRank - 1] : "";
+
+          return (
+            <ChestCard 
+              key={pack._id}
+              title={pack.name}
+              price={pack.price}
+              description={isLocked ? `Bloqueado hasta derrotar a ${requiredRankName}` : `Contiene ${pack.cardsPerPack} cartas.`}
+              imageUrl={pack.imageUrl}
+              onPurchase={() => handlePurchase(pack._id, pack.price)}
+              onPreview={() => setPreviewPack(pack)}
+              loading={loading || isOpening}
+              userCredits={user.credits}
+              isOpening={isOpening && openingPackId === pack._id}
+              baseUrl={baseUrl}
+              isLocked={isLocked}
+              requiredRankName={requiredRankName}
+            />
+          );
+        })}
       </div>
 
       {!isOnboarding && (
@@ -378,11 +387,11 @@ function ShopView({ user, setUser, cards, onUpdate, baseUrl, isOnboarding }) {
   );
 }
 
-function ChestCard({ title, price, description, onPurchase, onPreview, loading, userCredits, disabled, isOpening, imageUrl, baseUrl }) {
+function ChestCard({ title, price, description, onPurchase, onPreview, loading, userCredits, disabled, isOpening, imageUrl, baseUrl, isLocked, requiredRankName }) {
   const isAffordable = userCredits >= price || price === 0;
 
   return (
-    <div className={`chest-card ${disabled ? 'disabled' : ''}`}>
+    <div className={`chest-card ${disabled || isLocked ? 'disabled' : ''}`}>
       <div className="chest-preview-btn-wrap">
          <button className="btn-view-contents" title="Ver Contenido" onClick={(e) => { e.stopPropagation(); onPreview(); }}>
             <Eye size={18} />
@@ -391,7 +400,7 @@ function ChestCard({ title, price, description, onPurchase, onPreview, loading, 
       <div className="chest-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '230px' }}>
         <motion.div 
           className="chest-visual"
-          animate={isOpening ? { 
+          animate={isOpening && !isLocked ? { 
             rotate: [0, -5, 5, -5, 5, 0],
             scale: [1, 1.05, 1.05, 1],
             transition: { duration: 1.5, repeat: Infinity }
@@ -399,18 +408,28 @@ function ChestCard({ title, price, description, onPurchase, onPreview, loading, 
           style={{
              width: '140px', 
              height: '210px', 
-             background: `url(${imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http') ? '' : baseUrl}${imageUrl}) center/cover`
+             background: `url(${imageUrl && typeof imageUrl === 'string' && imageUrl.startsWith('http') ? '' : baseUrl}${imageUrl}) center/cover`,
+             filter: isLocked ? 'grayscale(1) brightness(0.5)' : 'none'
           }}
         />
+        {isLocked && (
+          <div className="lock-overlay" style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <Lock size={40} color="var(--accent-gold)" />
+          </div>
+        )}
       </div>
       <div style={{ textAlign: 'center', marginTop: '1.2rem' }}>
-        <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: '#fff' }}>{title}</h3>
+        <h3 style={{ fontSize: '1.4rem', fontWeight: 900, color: isLocked ? '#666' : '#fff' }}>{title}</h3>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem', minHeight: '3rem' }}>{description}</p>
       </div>
       <div style={{ width: '100%', marginTop: 'auto' }}>
         {disabled ? (
           <div className="coming-soon-badge" style={{ textAlign: 'center', width: '100%', padding: '12px' }}>
             <Lock size={14} style={{ marginRight: '8px' }} /> PRÓXIMAMENTE
+          </div>
+        ) : isLocked ? (
+          <div className="btn-shop-buy btn-shop-locked" style={{ textAlign: 'center', opacity: 0.7 }}>
+            <Lock size={18} style={{ marginRight: '8px' }} /> DERROTA A {requiredRankName?.toUpperCase()}
           </div>
         ) : (
           <button 
